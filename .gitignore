@@ -30,3 +30,5 @@ backend/*.local
 *.njsproj
 *.sln
 *.sw?
+
+backend/drizzle

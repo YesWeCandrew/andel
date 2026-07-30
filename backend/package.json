@@ -4,12 +4,13 @@
   "description": "A home management app",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.10",
     "typescript": "^7.0.2"
   },
   "dependencies": {
