@@ -4,10 +4,11 @@ export const todo = sqliteTable('todo',
     {
         id: integer('id').primaryKey({ autoIncrement: true }),
         title: text('title').notNull(),
+        active: integer('active', { mode: 'boolean' }).default(true).notNull(),
         emoji: text('emoji'),
         notes: text('notes'),
         frequency_days: integer('frequency_days'),
-        last_completed_on: integer('last_completed_on', { mode: 'timestamp' }),
+        next_completion_on: integer('next_completion_on', { mode: 'timestamp' }),
         created_on: integer('created_on', { mode: 'timestamp' }).notNull()
     }
 )

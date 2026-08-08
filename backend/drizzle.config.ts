@@ -1,7 +1,7 @@
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: './db/schema.ts',       // path to the file you just wrote
+  schema: './src/schema.ts',       // path to the file you just wrote
   out: './drizzle',               // folder where migration files will land
   dialect: 'sqlite',
   dbCredentials: {
