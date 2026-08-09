@@ -103,6 +103,9 @@ export async function todoRoutes(app: FastifyInstance) {
       return { error: 'ids must be a comma-separated list of numbers' }
     }
 
+    await db.delete(todo_log)
+      .where(inArray(todo_log.todo_id, todoIds))
+
     const deleted = await db.delete(todo)
       .where(inArray(todo.id, todoIds))
       .returning()

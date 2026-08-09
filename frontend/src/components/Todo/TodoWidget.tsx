@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CheckSquare, Plus } from 'iconoir-react'
+import { CheckSquare, Eye, EyeClosed, Plus } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
@@ -28,12 +28,15 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
+  const [showCompleted, setShowCompleted] = useState(false)
 
   const isTile = variant === 'tile'
 
   const lastCompletedMap = useMemo(() => getLastCompletedMap(logs), [logs])
   const activeTodos = useMemo(() => todos.filter((t) => t.active), [todos])
-  const visibleTodos = isTile ? activeTodos.slice(0, maxTileItems) : activeTodos
+  const completedTodos = useMemo(() => todos.filter((t) => !t.active), [todos])
+  const baseTodos = showCompleted ? completedTodos : activeTodos
+  const visibleTodos = isTile ? baseTodos.slice(0, maxTileItems) : baseTodos
 
   const dueCount = useMemo(
     () =>
@@ -121,7 +124,22 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
         <span className={styles.count}>{dueCount} due</span>
         <button
           type="button"
-          className={`button button-primary ${styles.newButton}`}
+          className={`button button-secondary ${styles.newButton}`}
+          onClick={(event) => {
+            event.stopPropagation()
+            setShowCompleted((prev) => !prev)
+          }}
+        >
+          {showCompleted ? (
+            <EyeClosed width={14} height={14} strokeWidth={2.2} />
+          ) : (
+            <Eye width={14} height={14} strokeWidth={2.2} />
+          )}
+          {showCompleted ? 'Show active' : 'Show completed'}
+        </button>
+        <button
+          type="button"
+          className="button button-primary"
           onClick={(event) => {
             event.stopPropagation()
             openCreateForm()
@@ -137,7 +155,9 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
       {loading ? (
         <p className={styles.empty}>Loading…</p>
       ) : visibleTodos.length === 0 ? (
-        <p className={styles.empty}>Nothing due — enjoy the free time.</p>
+        <p className={styles.empty}>
+          {showCompleted ? 'No completed to-dos yet.' : 'Nothing due — enjoy the free time.'}
+        </p>
       ) : (
         <ul className={styles.list}>
           {visibleTodos.map((todo) => (
@@ -154,9 +174,9 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
         </ul>
       )}
 
-      {isTile && activeTodos.length > maxTileItems && (
+      {isTile && baseTodos.length > maxTileItems && (
         <button type="button" className={styles.seeAll} onClick={onExpand}>
-          See all {activeTodos.length}
+          See all {baseTodos.length}
         </button>
       )}
 

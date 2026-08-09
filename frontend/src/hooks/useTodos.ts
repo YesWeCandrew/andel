@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { todoLogApi, todosApi } from '../api/todos'
-import type { CreateTodoInput, Todo, TodoLog, UpdateTodoInput } from '../api/todos'
+import type { Todo, TodoLog, UpsertTodoInput } from '../api/todos'
 
 // Centralizes fetching + mutating todos so TodoWidget only has to deal with
 // display state (which form is open, which item is being edited, etc). Every
@@ -34,7 +34,7 @@ export function useTodos() {
   }, [refresh])
 
   const create = useCallback(
-    async (input: CreateTodoInput) => {
+    async (input: UpsertTodoInput) => {
       await todosApi.create(input)
       await refresh()
     },
@@ -42,7 +42,7 @@ export function useTodos() {
   )
 
   const update = useCallback(
-    async (id: number, input: UpdateTodoInput) => {
+    async (id: number, input: UpsertTodoInput) => {
       await todosApi.update(id, input)
       await refresh()
     },

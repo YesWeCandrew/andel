@@ -1,6 +1,6 @@
 // src/routes/todo_log.ts
 import type { FastifyInstance } from 'fastify'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { db } from '../db.ts'
 import { todo_log } from '../schema.ts'
 
@@ -31,7 +31,7 @@ export async function todo_logRoutes(app: FastifyInstance) {
   app.get('/todo/:id/todo_log', async (request) => {
     const { id } = request.params as { id: string }
  
-    const logs = await db.select().from(todo_log).where(eq(todo_log.todo_id, Number(id)))
+    const logs = await db.select().from(todo_log).where(eq(todo_log.todo_id, Number(id))).orderBy(desc(todo_log.completed_on))
     return logs
   })
 
