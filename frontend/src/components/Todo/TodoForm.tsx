@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Xmark } from 'iconoir-react'
-import type { CreateTodoInput, Todo, UpdateTodoInput } from '../../api/todos'
+import type { Todo, UpsertTodoInput } from '../../api/todos'
 import styles from './TodoForm.module.css'
-
-const FREQUENCY_PRESETS = [1, 2, 5, 7, 14]
 
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10)
@@ -13,19 +11,20 @@ function todayIsoDate(): string {
 interface TodoFormProps {
   /** Omit (or pass null) to create a new todo; pass a todo to edit it. */
   initialTodo?: Todo | null
-  onSubmit: (input: CreateTodoInput | UpdateTodoInput) => Promise<void> | void
+  onSubmit: (input: UpsertTodoInput ) => Promise<void> | void
   onCancel: () => void
+  onDelete?: () => Promise<void> | void
   submitting?: boolean
   error?: string | null
 }
 
-export function TodoForm({ initialTodo, onSubmit, onCancel, submitting = false, error = null }: TodoFormProps) {
+export function TodoForm({ initialTodo, onSubmit, onCancel, onDelete, submitting = false, error = null }: TodoFormProps) {
   const isEditing = Boolean(initialTodo)
 
   const [title, setTitle] = useState(initialTodo?.title ?? '')
   const [emoji, setEmoji] = useState(initialTodo?.emoji ?? '')
   const [notes, setNotes] = useState(initialTodo?.notes ?? '')
-  const [startOn, setStartOn] = useState(todayIsoDate())
+  const [nextCompletionOn, setNextCompletionOn] = useState(initialTodo?.next_completion_on ?? todayIsoDate())
   const [repeats, setRepeats] = useState(Boolean(initialTodo?.frequency_days))
   const [frequencyDays, setFrequencyDays] = useState(initialTodo?.frequency_days ?? 7)
   const [titleError, setTitleError] = useState<string | null>(null)
@@ -42,23 +41,13 @@ export function TodoForm({ initialTodo, onSubmit, onCancel, submitting = false, 
     const trimmedEmoji = emoji.trim()
     const trimmedNotes = notes.trim()
 
-    if (isEditing) {
-      const input: UpdateTodoInput = {
-        title: trimmedTitle,
-        emoji: trimmedEmoji || undefined,
-        notes: trimmedNotes || undefined,
-        frequency_days: repeats ? frequencyDays : undefined,
-      }
-      onSubmit(input)
-      return
-    }
-
-    const input: CreateTodoInput = {
+    const input: UpsertTodoInput = {
       title: trimmedTitle,
-      emoji: trimmedEmoji || undefined,
+      active: true,
+      emoji: trimmedEmoji || '🔘',
       notes: trimmedNotes || undefined,
       frequency_days: repeats ? frequencyDays : undefined,
-      start_on: startOn,
+      next_completion_on: nextCompletionOn
     }
     onSubmit(input)
   }
@@ -66,7 +55,7 @@ export function TodoForm({ initialTodo, onSubmit, onCancel, submitting = false, 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.headerRow}>
-        <h2 className={styles.heading}>{isEditing ? 'Edit to do' : 'New to do'}</h2>
+        <h2 className={styles.heading}>{isEditing ? 'Edit to do' : 'Create new to do'}</h2>
         <button type="button" className={styles.closeButton} onClick={onCancel} aria-label="Close">
           <Xmark width={16} height={16} strokeWidth={2} />
         </button>
@@ -84,7 +73,7 @@ export function TodoForm({ initialTodo, onSubmit, onCancel, submitting = false, 
             setTitle(e.target.value)
             if (titleError) setTitleError(null)
           }}
-          placeholder="e.g. Sweep the kitchen"
+          placeholder="Sweep the floors"
           autoFocus
         />
         {titleError && <p className={styles.error}>{titleError}</p>}
@@ -100,24 +89,22 @@ export function TodoForm({ initialTodo, onSubmit, onCancel, submitting = false, 
             className={styles.emojiInput}
             value={emoji}
             onChange={(e) => setEmoji(e.target.value.slice(0, 2))}
-            placeholder="🧹"
+            placeholder="🔘"
           />
         </div>
 
-        {!isEditing && (
-          <div className={styles.field} style={{ flex: 1 }}>
-            <label className={styles.label} htmlFor="todo-start">
-              Start
-            </label>
-            <input
-              id="todo-start"
-              type="date"
-              className={styles.input}
-              value={startOn}
-              onChange={(e) => setStartOn(e.target.value)}
-            />
-          </div>
-        )}
+        <div className={styles.field} style={{ flex: 1 }}>
+          <label className={styles.label} htmlFor="todo-next-completion">
+            Due on
+          </label>
+          <input
+            id="todo-next-completion"
+            type="date"
+            className={styles.input}
+            value={nextCompletionOn}
+            onChange={(e) => setNextCompletionOn(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className={styles.field}>
@@ -157,18 +144,6 @@ export function TodoForm({ initialTodo, onSubmit, onCancel, submitting = false, 
           {repeats && (
             <>
               <span className={styles.repeatText}>every</span>
-              <div className={styles.chipGroup}>
-                {FREQUENCY_PRESETS.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`${styles.chip} ${frequencyDays === n ? styles.chipActive : ''}`}
-                    onClick={() => setFrequencyDays(n)}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
               <input
                 type="number"
                 min={1}
@@ -188,6 +163,16 @@ export function TodoForm({ initialTodo, onSubmit, onCancel, submitting = false, 
         <button type="submit" className={`button button-primary ${styles.submitButton}`} disabled={submitting}>
           {submitting ? 'Saving…' : 'Save'}
         </button>
+        {isEditing && onDelete && (
+          <button
+            type="button"
+            className={`button button-danger ${styles.deleteButton}`}
+            onClick={onDelete}
+            disabled={submitting}
+          >
+            Delete
+          </button>
+        )}
       </div>
     </form>
   )

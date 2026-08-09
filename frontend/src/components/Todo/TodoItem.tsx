@@ -15,7 +15,8 @@ interface TodoItemProps {
 }
 
 export function TodoItem({ todo, status, lastCompletedOn, completing = false, onComplete, onEdit }: TodoItemProps) {
-  const nextTagClassName = [
+  const isRecurring = Boolean(todo.frequency_days)
+  const dueTagClassName = [
     'tag',
     status === 'overdue' && 'tag-danger',
     status === 'due-today' && 'tag-accent',
@@ -39,9 +40,9 @@ export function TodoItem({ todo, status, lastCompletedOn, completing = false, on
       <button type="button" className={styles.body} onClick={() => onEdit(todo)}>
         <span className={`${styles.title} ${completing ? styles.titleDone : ''}`}>{todo.title}</span>
         <span className={styles.tags}>
-          <span className="tag">Last: {formatLastLabel(lastCompletedOn)}</span>
-          <span className={nextTagClassName}>Next: {formatNextLabel(todo)}</span>
-          <span className="tag">Target: {formatTargetLabel(todo)}</span>
+          <span className={dueTagClassName}>Due: {formatNextLabel(todo)}</span>
+          {isRecurring && <span className="tag">Last: {formatLastLabel(lastCompletedOn)}</span>}
+          {isRecurring && <span className="tag">Target: {formatTargetLabel(todo)}</span>}
         </span>
       </button>
     </li>

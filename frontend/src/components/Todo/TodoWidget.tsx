@@ -3,8 +3,8 @@ import { CheckSquare, Plus } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
-import { getLastCompletedMap, getTodoStatus, sortTodos } from './todoHelpers'
-import type { CreateTodoInput, Todo, UpdateTodoInput } from '../../api/todos'
+import { getLastCompletedMap, getTodoStatus } from './todoHelpers'
+import type { UpsertTodoInput, Todo } from '../../api/todos'
 import styles from './TodoWidget.module.css'
 
 interface TodoWidgetProps {
@@ -21,7 +21,7 @@ interface TodoWidgetProps {
 }
 
 export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: TodoWidgetProps) {
-  const { todos, logs, loading, error, create, update, complete } = useTodos()
+  const { todos, logs, loading, error, create, update, complete, remove } = useTodos()
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
@@ -32,7 +32,7 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
   const isTile = variant === 'tile'
 
   const lastCompletedMap = useMemo(() => getLastCompletedMap(logs), [logs])
-  const activeTodos = useMemo(() => sortTodos(todos.filter((t) => t.active)), [todos])
+  const activeTodos = useMemo(() => todos.filter((t) => t.active), [todos])
   const visibleTodos = isTile ? activeTodos.slice(0, maxTileItems) : activeTodos
 
   const dueCount = useMemo(
@@ -77,14 +77,28 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
     }
   }
 
-  async function handleFormSubmit(input: CreateTodoInput | UpdateTodoInput) {
+  async function handleDelete() {
+    if (!editingTodo) return
+    setFormSubmitting(true)
+    setFormError(null)
+    try {
+      await remove([editingTodo.id])
+      closeForm()
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+    } finally {
+      setFormSubmitting(false)
+    }
+  }
+
+  async function handleFormSubmit(input: UpsertTodoInput) {
     setFormSubmitting(true)
     setFormError(null)
     try {
       if (editingTodo) {
-        await update(editingTodo.id, input as UpdateTodoInput)
+        await update(editingTodo.id, input as UpsertTodoInput)
       } else {
-        await create(input as CreateTodoInput)
+        await create(input as UpsertTodoInput)
       }
       closeForm()
     } catch (err) {
@@ -153,6 +167,7 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
               initialTodo={editingTodo}
               onSubmit={handleFormSubmit}
               onCancel={closeForm}
+              onDelete={editingTodo ? handleDelete : undefined}
               submitting={formSubmitting}
               error={formError}
             />

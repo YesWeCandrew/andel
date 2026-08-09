@@ -62,24 +62,3 @@ export function getLastCompletedMap(logs: TodoLog[]): Record<number, string> {
 
   return map
 }
-
-const STATUS_ORDER: Record<TodoStatus, number> = {
-  overdue: 0,
-  'due-today': 1,
-  unscheduled: 2,
-  upcoming: 3,
-}
-
-/** Overdue first, then due today, then unscheduled one-offs, then soonest upcoming. */
-export function sortTodos(todos: Todo[]): Todo[] {
-  return [...todos].sort((a, b) => {
-    const statusDiff = STATUS_ORDER[getTodoStatus(a)] - STATUS_ORDER[getTodoStatus(b)]
-    if (statusDiff !== 0) return statusDiff
-
-    if (a.next_completion_on && b.next_completion_on) {
-      return new Date(a.next_completion_on).getTime() - new Date(b.next_completion_on).getTime()
-    }
-
-    return a.title.localeCompare(b.title)
-  })
-}
