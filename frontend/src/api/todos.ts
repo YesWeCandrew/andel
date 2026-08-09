@@ -1,12 +1,12 @@
 import { api } from './client'
-import type { Todo, TodoLog, CreateTodoInput, UpdateTodoInput } from '../../../shared/todo'
+import type { Todo, TodoLog, UpsertTodoInput } from '../../../shared/todo'
 
-export type { Todo, TodoLog, CreateTodoInput, UpdateTodoInput }
+export type { Todo, TodoLog, UpsertTodoInput }
 
 export const todosApi = {
   list: () => api.get<Todo[]>('/todo'),
-  create: (input: CreateTodoInput) => api.post<Todo>('/todo', input),
-  update: (id: number, input: UpdateTodoInput) => api.patch<Todo>(`/todo/${id}`, input),
+  create: (input: UpsertTodoInput) => api.post<Todo>('/todo', input),
+  update: (id: number, input: UpsertTodoInput) => api.patch<Todo>(`/todo/${id}`, input),
   complete: (id: number) => api.post<Todo>(`/todo/${id}/complete`),
   remove: (ids: number[]) => api.delete<Todo[]>(`/todo?ids=${ids.join(',')}`),
 }

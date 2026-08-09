@@ -17,17 +17,11 @@ export interface TodoLog {
   completed_on: string
 }
 
-export interface CreateTodoInput {
-  title: string
-  emoji?: string
-  notes?: string
-  frequency_days?: number
-  start_on?: string
-}
-
-export interface UpdateTodoInput {
+export interface UpsertTodoInput {
   title?: string
+  active: boolean
   emoji?: string
   notes?: string
   frequency_days?: number
+  next_completion_on?: string
 }

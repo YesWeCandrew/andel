@@ -1,29 +1,29 @@
 // src/routes/todos.ts
 import type { FastifyInstance } from 'fastify'
-import { eq, inArray } from 'drizzle-orm'
+import { asc, eq, inArray } from 'drizzle-orm'
 import { db } from '../db.ts'
 import { todo, todo_log } from '../schema.ts'
-import type { CreateTodoInput, UpdateTodoInput } from '../../../shared/todo.ts'
+import type { UpsertTodoInput } from '../../../shared/todo.ts'
 
 export async function todoRoutes(app: FastifyInstance) {
 
   // GET /todo — list all todos
   app.get('/todo', async (request, reply) => {
-    const todos = await db.select().from(todo)
+    const todos = await db.select().from(todo).orderBy(asc(todo.next_completion_on))
     return todos
   })
 
   // POST /todo — create a new todo
   app.post('/todo', async (request, reply) => {
-    const body = request.body as CreateTodoInput
+    const body = request.body as UpsertTodoInput
 
     const [newTodo] = await db.insert(todo).values({
-      title: body.title,
-      active: true,
+      title: body.title ? body.title : 'New reminder',
+      active: body.active,
       emoji: body.emoji,
       notes: body.notes,
       frequency_days: body.frequency_days,
-      next_completion_on: body.start_on ? new Date(body.start_on) : undefined,
+      next_completion_on: body.next_completion_on ? new Date(body.next_completion_on) : undefined,
       created_on: new Date()
     }).returning()
 
@@ -34,10 +34,17 @@ export async function todoRoutes(app: FastifyInstance) {
   // PATCH /todo/:id — update an existing todo
   app.patch('/todo/:id', async (request, reply) => {
     const { id } = request.params as { id: string }
-    const body = request.body as UpdateTodoInput
+    const body = request.body as UpsertTodoInput
 
     const [updated] = await db.update(todo)
-      .set(body)
+      .set({
+        title: body.title ? body.title : 'New reminder',
+        active: body.active,
+        emoji: body.emoji,
+        notes: body.notes,
+        frequency_days: body.frequency_days,
+        next_completion_on: body.next_completion_on ? new Date(body.next_completion_on) : undefined,
+      })
       .where(eq(todo.id, Number(id)))
       .returning()
 
