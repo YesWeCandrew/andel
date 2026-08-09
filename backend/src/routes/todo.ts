@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import { eq, inArray } from 'drizzle-orm'
 import { db } from '../db.ts'
 import { todo, todo_log } from '../schema.ts'
+import type { CreateTodoInput, UpdateTodoInput } from '../../../shared/todo.ts'
 
 export async function todoRoutes(app: FastifyInstance) {
 
@@ -14,13 +15,7 @@ export async function todoRoutes(app: FastifyInstance) {
 
   // POST /todo — create a new todo
   app.post('/todo', async (request, reply) => {
-    const body = request.body as {
-      title: string
-      emoji?: string
-      notes?: string
-      frequency_days?: number
-      start_on?: string
-    }
+    const body = request.body as CreateTodoInput
 
     const [newTodo] = await db.insert(todo).values({
       title: body.title,
@@ -39,13 +34,7 @@ export async function todoRoutes(app: FastifyInstance) {
   // PATCH /todo/:id — update an existing todo
   app.patch('/todo/:id', async (request, reply) => {
     const { id } = request.params as { id: string }
-    const body = request.body as Partial<{
-      title: string
-      emoji: string
-      notes: string
-      frequency_days: number
-      last_completed_on: Date
-    }>
+    const body = request.body as UpdateTodoInput
 
     const [updated] = await db.update(todo)
       .set(body)
