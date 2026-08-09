@@ -1,0 +1,125 @@
+.widget {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.full {
+  width: 100%;
+  max-width: 720px;
+}
+
+.tile {
+  width: 100%;
+  max-height: 420px;
+}
+
+.tile .header {
+  cursor: pointer;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-6) var(--space-5);
+}
+
+.headerIcon {
+  color: var(--color-accent);
+  flex: none;
+}
+
+.title {
+  margin: 0;
+  flex: none;
+}
+
+.count {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-faint);
+}
+
+.newButton {
+  margin-left: auto;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--space-6);
+  overflow-y: auto;
+}
+
+.footer {
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.seeAll {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent);
+  border-top: 1px solid var(--color-border);
+}
+
+.seeAll:hover {
+  background: var(--color-surface-muted);
+}
+
+.empty {
+  margin: 0;
+  padding: 0 var(--space-6) var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+}
+
+.error {
+  margin: 0 var(--space-6) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 51, 46, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 100;
+}
+
+.panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-6);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: var(--space-5) var(--space-4) var(--space-4);
+  }
+
+  .list {
+    padding: 0 var(--space-4);
+  }
+
+  .footer {
+    padding: var(--space-3) var(--space-4) var(--space-5);
+  }
+}
