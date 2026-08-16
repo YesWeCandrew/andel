@@ -59,4 +59,7 @@ Icons should come from iconoir wherever possible. Each aspect of the app has a d
 - Shopping List: Cart
 - Recipes: PizzaSlice
 - Meal Plan: Calendar
-- 
+
+In addition use these icons:
+- To maximise to fullscreen: Expand
+- To minimise back: Collapse
