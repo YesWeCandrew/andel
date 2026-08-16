@@ -26,7 +26,7 @@ export const shopping_list = sqliteTable('shopping_list',
     {
         id: integer('id').primaryKey({ autoIncrement: true }),
         active: integer('active', { mode: 'boolean' }).default(true).notNull(),
-        completed_on: integer('completed_on', { mode: 'timestamp' }).notNull(),
+        completed_on: integer('completed_on', { mode: 'timestamp' }),
         created_on: integer('created_on', { mode: 'timestamp' }).notNull(),
         quantity: real(),
         unit_id: integer('unit_id').references(() => unit.id),

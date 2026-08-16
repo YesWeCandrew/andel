@@ -18,6 +18,9 @@ export default defineConfig({
     // proxy API paths through the dev server and keep requests same-origin.
     proxy: {
       '/todo': 'http://localhost:3000',
+      '/shopping_list': 'http://localhost:3000',
+      '/product': 'http://localhost:3000',
+      '/unit': 'http://localhost:3000',
     },
   },
 })
