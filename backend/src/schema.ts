@@ -30,7 +30,7 @@ export const shopping_list = sqliteTable('shopping_list',
         created_on: integer('created_on', { mode: 'timestamp' }).notNull(),
         quantity: real(),
         unit_id: integer('unit_id').references(() => unit.id),
-        product: text('product')
+        product_id: integer('product_id').references(() => product.id)
     }
 )
 

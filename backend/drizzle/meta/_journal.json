@@ -15,6 +15,13 @@
       "when": 1786898453000,
       "tag": "0001_pretty_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786898884378,
+      "tag": "0002_groovy_tinkerer",
+      "breakpoints": true
     }
   ]
 }
