@@ -7,7 +7,7 @@
 :root {
   /* ---- Brand colours (see VISION.md) ---- */
   --color-accent: rgb(80, 120, 100);
-  --color-accent-hover: rgb(68, 104, 84);
+  --color-accent-hover: rgb(140, 180, 150);
   --color-accent-soft: rgba(80, 120, 100, 0.1);
   --color-accent-border: rgba(80, 120, 100, 0.35);
   --color-on-accent: rgb(246, 247, 243);
