@@ -8,6 +8,13 @@
       "when": 1786876632928,
       "tag": "0000_calm_fat_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786898453000,
+      "tag": "0001_pretty_tarantula",
+      "breakpoints": true
     }
   ]
 }

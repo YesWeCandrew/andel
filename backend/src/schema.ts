@@ -1,4 +1,5 @@
-import { sqliteTable, text, integer} from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm';
+import { sqliteTable, text, integer, real, sqliteTableCreator} from 'drizzle-orm/sqlite-core'
 
 export const todo = sqliteTable('todo',
     {
@@ -20,3 +21,40 @@ export const todo_log = sqliteTable('todo_log',
         completed_on: integer('completed_on', { mode: 'timestamp' }).notNull()
     }
 );
+
+export const shopping_list = sqliteTable('shopping_list',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        active: integer('active', { mode: 'boolean' }).default(true).notNull(),
+        completed_on: integer('completed_on', { mode: 'timestamp' }).notNull(),
+        created_on: integer('created_on', { mode: 'timestamp' }).notNull(),
+        quantity: real(),
+        unit_id: integer('unit_id').references(() => unit.id),
+        product: text('product')
+    }
+)
+
+export const unit = sqliteTable('unit',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        unit: text('unit').unique(),
+        active: integer('active', { mode: 'boolean' }).default(true).notNull()
+    }
+)
+
+export const product = sqliteTable('product',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        product: text('product').unique(),
+        active: integer('active', { mode: 'boolean' }).default(true).notNull()
+    }
+)
+
+export const product_unit_history = sqliteTable('product_unit_history',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        unit_id: integer('unit_id').references(() => unit.id),
+        product_id: integer('product_id').references(() => product.id),
+        quantity: real()
+    }
+)
