@@ -50,6 +50,24 @@
   margin-left: auto;
 }
 
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+}
+
+.iconButton:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
 .list {
   list-style: none;
   margin: 0;

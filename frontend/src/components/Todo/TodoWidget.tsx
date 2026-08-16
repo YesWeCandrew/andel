@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CheckCircle, CheckCircleSolid, Plus } from 'iconoir-react'
+import { CheckCircle, CheckCircleSolid, Collapse, Expand, Plus } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
@@ -16,11 +16,13 @@ interface TodoWidgetProps {
   variant?: 'tile' | 'full'
   /** Called when a tile-variant widget wants to become the full view. */
   onExpand?: () => void
+  /** Called when a full-variant widget wants to return to the dashboard. */
+  onCollapse?: () => void
   /** How many rows to show before offering "see all" in tile mode. */
   maxTileItems?: number
 }
 
-export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: TodoWidgetProps) {
+export function TodoWidget({ variant = 'full', onExpand, onCollapse, maxTileItems = 4 }: TodoWidgetProps) {
   const { todos, logs, loading, error, create, update, complete, remove } = useTodos()
 
   const [formOpen, setFormOpen] = useState(false)
@@ -148,6 +150,31 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
           <Plus width={14} height={14} strokeWidth={2.2} />
           New
         </button>
+        {isTile && onExpand && (
+          <button
+            type="button"
+            className={styles.iconButton}
+            onClick={(event) => {
+              event.stopPropagation()
+              onExpand()
+            }}
+            aria-label="Expand to full screen"
+            title="Expand"
+          >
+            <Expand width={16} height={16} strokeWidth={1.8} />
+          </button>
+        )}
+        {!isTile && onCollapse && (
+          <button
+            type="button"
+            className={styles.iconButton}
+            onClick={onCollapse}
+            aria-label="Back to dashboard"
+            title="Collapse"
+          >
+            <Collapse width={16} height={16} strokeWidth={1.8} />
+          </button>
+        )}
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
