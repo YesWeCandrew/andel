@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_PATH=/data/db.db
+      - PORT=3000
+    volumes:
+      - db-data:/data
+
+volumes:
+  db-data:

@@ -6,6 +6,7 @@ frontend/node_modules/*
 *.db
 *.sqlite
 dist/*
+frontend/dist
 # Logs
 backend/logs
 backend/*.log
@@ -30,5 +31,3 @@ backend/*.local
 *.njsproj
 *.sln
 *.sw?
-
-backend/drizzle
