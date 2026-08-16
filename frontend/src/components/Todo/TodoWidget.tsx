@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CheckSquare, Eye, EyeClosed, Plus } from 'iconoir-react'
+import { CheckCircle, CheckCircleSolid, Plus } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
@@ -119,7 +119,7 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
         role={isTile && onExpand ? 'button' : undefined}
         tabIndex={isTile && onExpand ? 0 : undefined}
       >
-        <CheckSquare className={styles.headerIcon} width={26} height={26} strokeWidth={1.7} />
+        <CheckCircle className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
         <h1 className={styles.title}>To do</h1>
         <span className={styles.count}>{dueCount} due</span>
         <button
@@ -131,9 +131,9 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 4 }: Tod
           }}
         >
           {showCompleted ? (
-            <EyeClosed width={14} height={14} strokeWidth={2.2} />
+            <CheckCircle width={14} height={14} strokeWidth={2.2} />
           ) : (
-            <Eye width={14} height={14} strokeWidth={2.2} />
+            <CheckCircleSolid width={14} height={14} strokeWidth={2.2} />
           )}
           {showCompleted ? 'Show active' : 'Show completed'}
         </button>
