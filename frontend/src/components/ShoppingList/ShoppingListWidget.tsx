@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
-import { Cart, CheckCircle, CheckCircleSolid, Collapse, Expand, Plus } from 'iconoir-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Cart, CheckCircle, CheckCircleSolid, Collapse, Plus } from 'iconoir-react'
 import { useShoppingList } from '../../hooks/useShoppingList'
 import { ShoppingListItem } from './ShoppingListItem'
 import { ShoppingListForm } from './ShoppingListForm'
 import type { ShoppingListFormValues } from './ShoppingListForm'
-import type { ShoppingListItem as ShoppingListItemType } from '../../api/shoppingList'
+import { usePageTitle } from '../../hooks/usePageTitle'
 import styles from './ShoppingListWidget.module.css'
 
 interface ShoppingListWidgetProps {
@@ -15,23 +16,43 @@ interface ShoppingListWidgetProps {
   variant?: 'tile' | 'full'
   /** Called when a tile-variant widget wants to become the full view. */
   onExpand?: () => void
-  /** Called when a full-variant widget wants to return to the dashboard. */
-  onCollapse?: () => void
   /** How many rows to show before offering "see all" in tile mode. */
   maxTileItems?: number
 }
 
-export function ShoppingListWidget({ variant = 'full', onExpand, onCollapse, maxTileItems = 4 }: ShoppingListWidgetProps) {
+export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 3 }: ShoppingListWidgetProps) {
   const { items, units, loading, error, create, update, complete, remove } = useShoppingList()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { id: idParam } = useParams<{ id?: string }>()
 
-  const [formOpen, setFormOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<ShoppingListItemType | null>(null)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
   const [showCompleted, setShowCompleted] = useState(false)
 
   const isTile = variant === 'tile'
+  usePageTitle(isTile ? undefined : 'Shopping list')
+
+  // Route-derived form state: /shoppinglist/new opens the create form,
+  // /shoppinglist/:id opens that item for editing (full variant only). On
+  // the dashboard tile, "New" instead opens the same form in place via
+  // history state, so the URL stays on "/" but the browser back button
+  // still closes it.
+  const tileNewFormOpen = isTile && Boolean((location.state as { newItem?: boolean } | null)?.newItem)
+  // Wait for items to finish loading before opening an existing-item edit —
+  // otherwise the form mounts against an empty list, resolves no match, and
+  // renders as a blank "new" form that never recovers once the data arrives.
+  const fullFormOpen = !isTile && idParam !== undefined && (idParam === 'new' || !loading)
+  const formOpen = fullFormOpen || tileNewFormOpen
+  const editingItem = idParam && idParam !== 'new' ? (items.find((i) => String(i.id) === idParam) ?? null) : null
+
+  // If a linked/bookmarked id doesn't match a real item once loading finishes, bounce back to the list.
+  useEffect(() => {
+    if (!isTile && idParam && idParam !== 'new' && !loading && !editingItem) {
+      navigate('/shoppinglist', { replace: true })
+    }
+  }, [isTile, idParam, loading, editingItem, navigate])
 
   const activeItems = useMemo(() => items.filter((i) => i.active), [items])
   const completedItems = useMemo(() => items.filter((i) => !i.active), [items])
@@ -39,21 +60,28 @@ export function ShoppingListWidget({ variant = 'full', onExpand, onCollapse, max
   const visibleItems = isTile ? baseItems.slice(0, maxTileItems) : baseItems
 
   function openCreateForm() {
-    setEditingItem(null)
     setFormError(null)
-    setFormOpen(true)
+    if (isTile) {
+      navigate(location.pathname, { state: { newItem: true } })
+    } else {
+      navigate('/shoppinglist/new')
+    }
   }
 
-  function openEditForm(item: ShoppingListItemType) {
-    setEditingItem(item)
+  function openEditForm(item: { id: number }) {
     setFormError(null)
-    setFormOpen(true)
+    navigate(`/shoppinglist/${item.id}`)
   }
 
   function closeForm() {
-    setFormOpen(false)
-    setEditingItem(null)
     setFormError(null)
+    if (tileNewFormOpen) {
+      // Pop the history entry openCreateForm pushed, rather than pushing yet
+      // another one, so the browser back button doesn't have to step over it.
+      navigate(-1)
+    } else {
+      navigate('/shoppinglist', { replace: true })
+    }
   }
 
   async function handleComplete(id: number) {
@@ -139,29 +167,15 @@ export function ShoppingListWidget({ variant = 'full', onExpand, onCollapse, max
           <Plus width={14} height={14} strokeWidth={2.2} />
           New
         </button>
-        {isTile && onExpand && (
+        {!isTile && (
           <button
             type="button"
-            className={styles.iconButton}
-            onClick={(event) => {
-              event.stopPropagation()
-              onExpand()
-            }}
-            aria-label="Expand to full screen"
-            title="Expand"
-          >
-            <Expand width={16} height={16} strokeWidth={1.8} />
-          </button>
-        )}
-        {!isTile && onCollapse && (
-          <button
-            type="button"
-            className={styles.iconButton}
-            onClick={onCollapse}
+            className="button button-secondary"
+            onClick={() => navigate('/')}
             aria-label="Back to dashboard"
             title="Collapse"
           >
-            <Collapse width={16} height={16} strokeWidth={1.8} />
+            <Collapse width={14} height={14} strokeWidth={2.2} />
           </button>
         )}
       </div>
@@ -190,7 +204,7 @@ export function ShoppingListWidget({ variant = 'full', onExpand, onCollapse, max
 
       {isTile && baseItems.length > maxTileItems && (
         <button type="button" className={styles.seeAll} onClick={onExpand}>
-          See all {baseItems.length}
+          See {baseItems.length - maxTileItems} other items
         </button>
       )}
 
@@ -198,6 +212,7 @@ export function ShoppingListWidget({ variant = 'full', onExpand, onCollapse, max
         <div className={styles.overlay} onClick={closeForm}>
           <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
             <ShoppingListForm
+              key={idParam}
               initialItem={editingItem}
               units={units}
               onSubmit={handleFormSubmit}

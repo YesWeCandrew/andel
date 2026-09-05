@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react'
-import { CheckCircle, CheckCircleSolid, Collapse, Expand, Plus } from 'iconoir-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { CheckCircle, CheckCircleSolid, Collapse, Plus } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
+import { usePageTitle } from '../../hooks/usePageTitle'
 import { getLastCompletedMap, getTodoStatus } from './todoHelpers'
-import type { UpsertTodoInput, Todo } from '../../api/todos'
+import type { UpsertTodoInput } from '../../api/todos'
 import styles from './TodoWidget.module.css'
 
 interface TodoWidgetProps {
@@ -16,23 +18,42 @@ interface TodoWidgetProps {
   variant?: 'tile' | 'full'
   /** Called when a tile-variant widget wants to become the full view. */
   onExpand?: () => void
-  /** Called when a full-variant widget wants to return to the dashboard. */
-  onCollapse?: () => void
   /** How many rows to show before offering "see all" in tile mode. */
   maxTileItems?: number
 }
 
-export function TodoWidget({ variant = 'full', onExpand, onCollapse, maxTileItems = 4 }: TodoWidgetProps) {
+export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: TodoWidgetProps) {
   const { todos, logs, loading, error, create, update, complete, remove } = useTodos()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { id: idParam } = useParams<{ id?: string }>()
 
-  const [formOpen, setFormOpen] = useState(false)
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
   const [showCompleted, setShowCompleted] = useState(false)
 
   const isTile = variant === 'tile'
+  usePageTitle(isTile ? undefined : 'To do')
+
+  // Route-derived form state: /todo/new opens the create form, /todo/:id
+  // opens that todo for editing (full variant only). On the dashboard tile,
+  // "New" instead opens the same form in place via history state, so the
+  // URL stays on "/" but the browser back button still closes it.
+  const tileNewFormOpen = isTile && Boolean((location.state as { newTodo?: boolean } | null)?.newTodo)
+  // Wait for todos to finish loading before opening an existing-item edit —
+  // otherwise the form mounts against an empty list, resolves no match, and
+  // renders as a blank "new" form that never recovers once the data arrives.
+  const fullFormOpen = !isTile && idParam !== undefined && (idParam === 'new' || !loading)
+  const formOpen = fullFormOpen || tileNewFormOpen
+  const editingTodo = idParam && idParam !== 'new' ? (todos.find((t) => String(t.id) === idParam) ?? null) : null
+
+  // If a linked/bookmarked id doesn't match a real todo once loading finishes, bounce back to the list.
+  useEffect(() => {
+    if (!isTile && idParam && idParam !== 'new' && !loading && !editingTodo) {
+      navigate('/todo', { replace: true })
+    }
+  }, [isTile, idParam, loading, editingTodo, navigate])
 
   const lastCompletedMap = useMemo(() => getLastCompletedMap(logs), [logs])
   const activeTodos = useMemo(() => todos.filter((t) => t.active), [todos])
@@ -50,21 +71,28 @@ export function TodoWidget({ variant = 'full', onExpand, onCollapse, maxTileItem
   )
 
   function openCreateForm() {
-    setEditingTodo(null)
     setFormError(null)
-    setFormOpen(true)
+    if (isTile) {
+      navigate(location.pathname, { state: { newTodo: true } })
+    } else {
+      navigate('/todo/new')
+    }
   }
 
-  function openEditForm(todo: Todo) {
-    setEditingTodo(todo)
+  function openEditForm(todo: { id: number }) {
     setFormError(null)
-    setFormOpen(true)
+    navigate(`/todo/${todo.id}`)
   }
 
   function closeForm() {
-    setFormOpen(false)
-    setEditingTodo(null)
     setFormError(null)
+    if (tileNewFormOpen) {
+      // Pop the history entry openCreateForm pushed, rather than pushing yet
+      // another one, so the browser back button doesn't have to step over it.
+      navigate(-1)
+    } else {
+      navigate('/todo', { replace: true })
+    }
   }
 
   async function handleComplete(id: number) {
@@ -101,9 +129,9 @@ export function TodoWidget({ variant = 'full', onExpand, onCollapse, maxTileItem
     setFormError(null)
     try {
       if (editingTodo) {
-        await update(editingTodo.id, input as UpsertTodoInput)
+        await update(editingTodo.id, input)
       } else {
-        await create(input as UpsertTodoInput)
+        await create(input)
       }
       closeForm()
     } catch (err) {
@@ -150,29 +178,15 @@ export function TodoWidget({ variant = 'full', onExpand, onCollapse, maxTileItem
           <Plus width={14} height={14} strokeWidth={2.2} />
           New
         </button>
-        {isTile && onExpand && (
+        {!isTile && (
           <button
             type="button"
-            className={styles.iconButton}
-            onClick={(event) => {
-              event.stopPropagation()
-              onExpand()
-            }}
-            aria-label="Expand to full screen"
-            title="Expand"
-          >
-            <Expand width={16} height={16} strokeWidth={1.8} />
-          </button>
-        )}
-        {!isTile && onCollapse && (
-          <button
-            type="button"
-            className={styles.iconButton}
-            onClick={onCollapse}
+            className="button button-secondary"
+            onClick={() => navigate('/')}
             aria-label="Back to dashboard"
             title="Collapse"
           >
-            <Collapse width={16} height={16} strokeWidth={1.8} />
+            <Collapse width={14} height={14} strokeWidth={2.2} />
           </button>
         )}
       </div>
@@ -203,7 +217,7 @@ export function TodoWidget({ variant = 'full', onExpand, onCollapse, maxTileItem
 
       {isTile && baseTodos.length > maxTileItems && (
         <button type="button" className={styles.seeAll} onClick={onExpand}>
-          See all {baseTodos.length}
+          See {baseTodos.length - maxTileItems} more to-dos
         </button>
       )}
 
@@ -211,6 +225,7 @@ export function TodoWidget({ variant = 'full', onExpand, onCollapse, maxTileItem
         <div className={styles.overlay} onClick={closeForm}>
           <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
             <TodoForm
+              key={idParam}
               initialTodo={editingTodo}
               onSubmit={handleFormSubmit}
               onCancel={closeForm}

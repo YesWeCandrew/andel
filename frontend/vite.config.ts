@@ -17,10 +17,7 @@ export default defineConfig({
     // Backend (Fastify) runs on :3000 with no CORS headers configured, so
     // proxy API paths through the dev server and keep requests same-origin.
     proxy: {
-      '/todo': 'http://localhost:3000',
-      '/shopping_list': 'http://localhost:3000',
-      '/product': 'http://localhost:3000',
-      '/unit': 'http://localhost:3000',
+      '/api': 'http://localhost:3000',
     },
   },
 })

@@ -4,7 +4,7 @@
 // they stay same-origin (the backend registers no CORS headers). In
 // production this expects to be served from the same origin as the API, or
 // VITE_API_URL to point at it directly.
-const BASE_URL = import.meta.env.VITE_API_URL ?? ''
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
 
 export class ApiError extends Error {
   status: number
