@@ -78,6 +78,7 @@ export const recipe_ingredient = sqliteTable('recipe_ingredient',
         product_id: integer('product_id').notNull().references(() => product.id),
         unit_id: integer('unit_id').references(() => unit.id),
         quantity: real('quantity').notNull(),
-        sort_order: integer('sort_order').notNull().default(0)
+        sort_order: integer('sort_order').notNull().default(0),
+        note: text('note')
     }
 )

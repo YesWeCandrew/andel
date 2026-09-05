@@ -8,6 +8,7 @@ export interface RecipeIngredient {
   unit: string | null
   quantity: number
   sort_order: number
+  note: string | null
 }
 
 export interface Recipe {
@@ -36,6 +37,7 @@ export interface RecipeIngredientInput {
   product: string
   quantity: number
   unit?: string
+  note?: string
 }
 
 export interface CreateRecipeInput {

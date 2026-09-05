@@ -35,6 +35,7 @@ function recipeIngredientQuery() {
     unit: unit.unit,
     quantity: recipe_ingredient.quantity,
     sort_order: recipe_ingredient.sort_order,
+    note: recipe_ingredient.note,
   })
     .from(recipe_ingredient)
     .leftJoin(product, eq(recipe_ingredient.product_id, product.id))
@@ -70,6 +71,7 @@ async function replaceIngredients(recipeId: number, ingredients: RecipeIngredien
       unit_id: unitRow?.id ?? null,
       quantity: ingredient.quantity,
       sort_order: index,
+      note: ingredient.note ?? null
     })
   }
 }

@@ -51,13 +51,7 @@
   color: inherit;
 }
 
-.title {
-  font-size: var(--text-base);
-  color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+
 
 .titleDone {
   color: var(--color-text-disabled);

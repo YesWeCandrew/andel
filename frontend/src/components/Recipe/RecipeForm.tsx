@@ -12,7 +12,7 @@ interface IngredientRow extends RecipeIngredientRowValue {
 }
 
 function emptyRow(): IngredientRow {
-  return { key: crypto.randomUUID(), product: '', quantity: 1, unit: '' }
+  return { key: crypto.randomUUID(), product: '', quantity: 1, unit: '', note: '' }
 }
 
 interface RecipeFormProps {
@@ -48,6 +48,7 @@ export function RecipeForm({
           product: ingredient.product,
           quantity: ingredient.quantity,
           unit: ingredient.unit ?? '',
+          note: ingredient.note ?? '',
         }))
       : [emptyRow()],
   )
@@ -96,6 +97,7 @@ export function RecipeForm({
         product: row.product.trim(),
         quantity: row.quantity || 1,
         unit: row.unit.trim(),
+        note: row.note.trim() || undefined,
       }))
 
     const input: CreateRecipeInput = {

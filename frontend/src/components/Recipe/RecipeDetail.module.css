@@ -146,9 +146,20 @@
 }
 
 .ingredientName {
-  flex: 1;
+  flex: none;
   min-width: 0;
   color: var(--color-text);
+}
+
+.ingredientNote {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .addButton {

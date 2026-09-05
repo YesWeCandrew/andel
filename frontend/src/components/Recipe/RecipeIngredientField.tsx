@@ -8,6 +8,7 @@ export interface RecipeIngredientRowValue {
   product: string
   quantity: number
   unit: string
+  note: string
 }
 
 interface RecipeIngredientFieldProps {
@@ -122,6 +123,15 @@ export function RecipeIngredientField({ value, units, onChange, onRemove, remova
           <option key={u.id} value={u.unit ?? ''} />
         ))}
       </datalist>
+
+      <input
+        className={styles.noteInput}
+        value={value.note}
+        onChange={(event) => onChange({ note: event.target.value })}
+        placeholder="notes"
+        autoComplete="off"
+        aria-label="Notes"
+      />
 
       <button
         type="button"

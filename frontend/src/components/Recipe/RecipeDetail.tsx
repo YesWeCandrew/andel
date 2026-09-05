@@ -207,6 +207,7 @@ export function RecipeDetail() {
                   <li key={ingredient.id} className={styles.ingredientRow}>
                     <span className={styles.ingredientQty}>{formatQuantity(quantity, ingredient.unit)}</span>
                     <span className={styles.ingredientName}>{ingredient.product}</span>
+                    <span className={styles.ingredientNote}>{ingredient.note}</span>
                     <button
                       type="button"
                       className={styles.addButton}
