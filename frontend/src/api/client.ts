@@ -17,10 +17,14 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  // A FormData body needs the browser to set its own multipart boundary
+  // header — setting Content-Type ourselves would break the upload.
+  const isFormData = options?.body instanceof FormData
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options?.body && !isFormData ? { 'Content-Type': 'application/json' } : {}),
       ...options?.headers,
     },
   })
@@ -47,4 +51,8 @@ export const api = {
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  // For multipart/form-data bodies (e.g. file uploads) — skips the JSON
+  // Content-Type/stringify step `post` always applies, since the browser
+  // needs to set its own multipart boundary header for a FormData body.
+  upload: <T>(path: string, body: FormData) => request<T>(path, { method: 'POST', body }),
 }

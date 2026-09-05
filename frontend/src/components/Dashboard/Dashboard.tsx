@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TodoWidget } from '../Todo/TodoWidget'
 import { ShoppingListWidget } from '../ShoppingList/ShoppingListWidget'
+import { RecipeWidget } from '../Recipe/RecipeWidget'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { formatDisplayDate, formatDisplayTime, getGreeting } from './dashboardHelpers'
 import styles from './Dashboard.module.css'
@@ -28,8 +29,16 @@ export function Dashboard() {
         <p className={styles.time}>{formatDisplayTime(now)}</p>
       </header>
 
-      <TodoWidget variant="tile" onExpand={() => navigate('/todo')} />
-      <ShoppingListWidget variant="tile" onExpand={() => navigate('/shoppinglist')} />
+      <div className={styles.columns}>
+        <div className={styles.column}>
+          <TodoWidget variant="tile" onExpand={() => navigate('/todo')} />
+          <ShoppingListWidget variant="tile" onExpand={() => navigate('/shoppinglist')} />
+        </div>
+        <div className={styles.column}>
+          {/* Reserved for a future Meal Planning widget, above Recipes. */}
+          <RecipeWidget variant="tile" onExpand={() => navigate('/recipes')} />
+        </div>
+      </div>
     </div>
   )
 }

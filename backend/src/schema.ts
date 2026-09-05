@@ -58,3 +58,26 @@ export const product_unit_history = sqliteTable('product_unit_history',
         quantity: real()
     }
 )
+
+export const recipe = sqliteTable('recipe',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        name: text('name').notNull(),
+        description: text('description'),
+        steps: text('steps'),
+        servings: integer('servings').notNull().default(1),
+        photo_path: text('photo_path'),
+        created_on: integer('created_on', { mode: 'timestamp' }).notNull()
+    }
+)
+
+export const recipe_ingredient = sqliteTable('recipe_ingredient',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        recipe_id: integer('recipe_id').notNull().references(() => recipe.id),
+        product_id: integer('product_id').notNull().references(() => product.id),
+        unit_id: integer('unit_id').references(() => unit.id),
+        quantity: real('quantity').notNull(),
+        sort_order: integer('sort_order').notNull().default(0)
+    }
+)

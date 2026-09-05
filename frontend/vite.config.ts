@@ -16,8 +16,10 @@ export default defineConfig({
   server: {
     // Backend (Fastify) runs on :3000 with no CORS headers configured, so
     // proxy API paths through the dev server and keep requests same-origin.
+    // /uploads serves recipe photos (see backend/src/lib/uploads.ts).
     proxy: {
       '/api': 'http://localhost:3000',
+      '/uploads': 'http://localhost:3000',
     },
   },
 })

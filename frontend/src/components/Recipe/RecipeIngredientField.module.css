@@ -1,0 +1,100 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.autocomplete {
+  position: relative;
+  flex: 2;
+  min-width: 0;
+}
+
+.productInput,
+.quantityInput,
+.unitInput {
+  width: 100%;
+  height: 42px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-on-surface-border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-3);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.productInput:focus,
+.quantityInput:focus,
+.unitInput:focus {
+  border-color: var(--color-accent);
+}
+
+.quantityInput {
+  flex: none;
+  width: 72px;
+}
+
+.unitInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-1);
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.suggestion {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestion:hover {
+  background: var(--color-surface-muted);
+}
+
+.removeButton {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-faint);
+}
+
+.removeButton:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.removeButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

@@ -20,6 +20,7 @@ backend/node_modules
 backend/dist
 backend/dist-ssr
 backend/*.local
+backend/uploads
 
 # Editor directories and files
 .vscode/*
