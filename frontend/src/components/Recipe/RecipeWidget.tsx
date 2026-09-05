@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Collapse, PizzaSlice, Plus, Search } from 'iconoir-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { NavArrowLeft, PizzaSlice, Plus, Search } from 'iconoir-react'
 import { useRecipes } from '../../hooks/useRecipes'
+import { useUnits } from '../../hooks/useUnits'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { recipeApi } from '../../api/recipe'
+import type { CreateRecipeInput } from '../../api/recipe'
 import { RecipeCard } from './RecipeCard'
+import { RecipeForm } from './RecipeForm'
 import { pickRandom } from './recipeHelpers'
 import styles from './RecipeWidget.module.css'
 
@@ -21,11 +25,38 @@ interface RecipeWidgetProps {
 
 export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: RecipeWidgetProps) {
   const { recipes, loading, error } = useRecipes()
+  const units = useUnits()
   const navigate = useNavigate()
+  const location = useLocation()
   const [search, setSearch] = useState('')
+
+  const [formSubmitting, setFormSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const isTile = variant === 'tile'
   usePageTitle(isTile ? undefined : 'Recipes')
+
+  // /recipes/new opens the create form as an overlay on top of the list.
+  const newFormOpen = !isTile && location.pathname === '/recipes/new'
+
+  function closeForm() {
+    setFormError(null)
+    navigate('/recipes', { replace: true })
+  }
+
+  async function handleFormSubmit(input: CreateRecipeInput, photoFile: File | null) {
+    setFormSubmitting(true)
+    setFormError(null)
+    try {
+      const saved = await recipeApi.create(input)
+      if (photoFile) await recipeApi.uploadPhoto(saved.id, photoFile)
+      navigate(`/recipes/${saved.id}`)
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+    } finally {
+      setFormSubmitting(false)
+    }
+  }
 
   // Re-picked whenever the recipe list itself changes (new fetch reference),
   // which is exactly when a fresh random selection makes sense.
@@ -57,7 +88,7 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
         tabIndex={isTile && onExpand ? 0 : undefined}
       >
         <PizzaSlice className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
-        <h1 className={styles.title}>Recipes</h1>
+        <h2>Recipes</h2>
         <span className={styles.count}>{recipes.length} recipes</span>
         <button
           type="button"
@@ -76,9 +107,9 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
             className="button button-secondary"
             onClick={() => navigate('/')}
             aria-label="Back to dashboard"
-            title="Collapse"
+            title="Back"
           >
-            <Collapse width={14} height={14} strokeWidth={2.2} />
+            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
           </button>
         )}
       </div>
@@ -116,6 +147,20 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
         <button type="button" className={styles.seeAll} onClick={onExpand}>
           See {recipes.length - maxTileItems} more recipes
         </button>
+      )}
+
+      {newFormOpen && (
+        <div className={styles.overlay} onClick={closeForm}>
+          <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
+            <RecipeForm
+              units={units}
+              onSubmit={handleFormSubmit}
+              onCancel={closeForm}
+              submitting={formSubmitting}
+              error={formError}
+            />
+          </div>
+        </div>
       )}
     </div>
   )

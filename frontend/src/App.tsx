@@ -4,7 +4,6 @@ import { TodoWidget } from './components/Todo/TodoWidget'
 import { ShoppingListWidget } from './components/ShoppingList/ShoppingListWidget'
 import { RecipeWidget } from './components/Recipe/RecipeWidget'
 import { RecipeDetail } from './components/Recipe/RecipeDetail'
-import { RecipeForm } from './components/Recipe/RecipeForm'
 import './App.css'
 
 function App() {
@@ -18,9 +17,9 @@ function App() {
           <Route path="/shoppinglist" element={<ShoppingListWidget variant="full" />} />
           <Route path="/shoppinglist/:id" element={<ShoppingListWidget variant="full" />} />
           <Route path="/recipes" element={<RecipeWidget variant="full" />} />
-          <Route path="/recipes/new" element={<RecipeForm />} />
+          <Route path="/recipes/new" element={<RecipeWidget variant="full" />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
-          <Route path="/recipes/:id/edit" element={<RecipeForm />} />
+          <Route path="/recipes/:id/edit" element={<RecipeDetail />} />
         </Routes>
       </main>
     </BrowserRouter>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Cart, CheckCircle, CheckCircleSolid, Collapse, Plus } from 'iconoir-react'
+import { Cart, CheckCircle, CheckCircleSolid, NavArrowLeft, Plus } from 'iconoir-react'
 import { useShoppingList } from '../../hooks/useShoppingList'
 import { ShoppingListItem } from './ShoppingListItem'
 import { ShoppingListForm } from './ShoppingListForm'
@@ -139,7 +139,7 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
         tabIndex={isTile && onExpand ? 0 : undefined}
       >
         <Cart className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
-        <h1 className={styles.title}>Shopping list</h1>
+        <h2>Shopping list</h2>
         <span className={styles.count}>{activeItems.length} items</span>
         <button
           type="button"
@@ -173,9 +173,9 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
             className="button button-secondary"
             onClick={() => navigate('/')}
             aria-label="Back to dashboard"
-            title="Collapse"
+            title="Back"
           >
-            <Collapse width={14} height={14} strokeWidth={2.2} />
+            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
           </button>
         )}
       </div>

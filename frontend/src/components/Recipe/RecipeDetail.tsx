@@ -1,24 +1,67 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Cart, EditPencil, Minus, NavArrowLeft, Plus } from 'iconoir-react'
 import { useRecipe } from '../../hooks/useRecipe'
+import { useUnits } from '../../hooks/useUnits'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { recipeApi, scaleQuantity } from '../../api/recipe'
+import type { CreateRecipeInput } from '../../api/recipe'
 import { formatQuantity } from './recipeHelpers'
+import { RecipeForm } from './RecipeForm'
 import styles from './RecipeDetail.module.css'
 
 export function RecipeDetail() {
   const { id } = useParams<{ id: string }>()
   const recipeId = Number(id)
   const navigate = useNavigate()
+  const location = useLocation()
+  const units = useUnits()
 
-  const { recipe, loading, error } = useRecipe(recipeId)
+  const { recipe, loading, error, refresh } = useRecipe(recipeId)
   usePageTitle(recipe ? recipe.name : 'Recipes')
 
   const [servingsOverride, setServingsOverride] = useState<number | null>(null)
   const [addingIds, setAddingIds] = useState<Set<number>>(new Set())
   const [addingAll, setAddingAll] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+
+  const [formSubmitting, setFormSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  // /recipes/:id/edit opens the edit form as an overlay on top of this detail view.
+  const editFormOpen = location.pathname.endsWith('/edit')
+
+  function closeForm() {
+    setFormError(null)
+    navigate(`/recipes/${recipeId}`, { replace: true })
+  }
+
+  async function handleFormSubmit(input: CreateRecipeInput, photoFile: File | null) {
+    setFormSubmitting(true)
+    setFormError(null)
+    try {
+      await recipeApi.update(recipeId, input)
+      if (photoFile) await recipeApi.uploadPhoto(recipeId, photoFile)
+      await refresh()
+      closeForm()
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+    } finally {
+      setFormSubmitting(false)
+    }
+  }
+
+  async function handleFormDelete() {
+    setFormSubmitting(true)
+    setFormError(null)
+    try {
+      await recipeApi.remove(recipeId)
+      navigate('/recipes')
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormSubmitting(false)
+    }
+  }
 
   // A fresh recipe id (navigated from elsewhere) should start back at its
   // own base servings, not carry over the previous recipe's adjustment.
@@ -85,14 +128,9 @@ export function RecipeDetail() {
 
   return (
     <div className={styles.detail}>
-      <BackLink onClick={() => navigate('/recipes')} />
-
-      {recipe.photo_path && <img src={recipe.photo_path} alt="" className={styles.photo} />}
-
       <div className={styles.header}>
         <div className={styles.headerText}>
-          <h1 className={styles.name}>{recipe.name}</h1>
-          {recipe.description && <p className={styles.description}>{recipe.description}</p>}
+          <h2 className={styles.name}>{recipe.name}</h2>
         </div>
         <div className={styles.headerActions}>
           <button
@@ -112,10 +150,24 @@ export function RecipeDetail() {
             <Cart width={14} height={14} strokeWidth={2.2} />
             {addingAll ? 'Adding…' : 'Add all to shopping list'}
           </button>
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={() => navigate('/recipes')}
+            aria-label="Back to recipes"
+            title="Back"
+          >
+            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
+          </button>
         </div>
       </div>
 
+      {recipe.photo_path && <img src={recipe.photo_path} alt="" className={styles.photo} />}
+
       {actionError && <p className={styles.error}>{actionError}</p>}
+
+
+      {recipe.description && <p className={styles.description}>{recipe.description}</p>}
 
       <div className={styles.body}>
         <section className={styles.ingredientsSection}>
@@ -181,15 +233,31 @@ export function RecipeDetail() {
           )}
         </section>
       </div>
+
+      {editFormOpen && (
+        <div className={styles.overlay} onClick={closeForm}>
+          <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
+            <RecipeForm
+              key={recipeId}
+              initialRecipe={recipe}
+              units={units}
+              onSubmit={handleFormSubmit}
+              onCancel={closeForm}
+              onDelete={handleFormDelete}
+              submitting={formSubmitting}
+              error={formError}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function BackLink({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" className={styles.backLink} onClick={onClick}>
+    <button type="button" className={styles.backLink} onClick={onClick} aria-label="Back to recipes" title="Back">
       <NavArrowLeft width={16} height={16} strokeWidth={2.2} />
-      Recipes
     </button>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { CheckCircle, CheckCircleSolid, Collapse, Plus } from 'iconoir-react'
+import { CheckCircle, CheckCircleSolid, NavArrowLeft, Plus } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
@@ -150,7 +150,7 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
         tabIndex={isTile && onExpand ? 0 : undefined}
       >
         <CheckCircle className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
-        <h1 className={styles.title}>To do</h1>
+        <h2>To do</h2>
         <span className={styles.count}>{dueCount} due</span>
         <button
           type="button"
@@ -184,9 +184,9 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
             className="button button-secondary"
             onClick={() => navigate('/')}
             aria-label="Back to dashboard"
-            title="Collapse"
+            title="Back"
           >
-            <Collapse width={14} height={14} strokeWidth={2.2} />
+            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
           </button>
         )}
       </div>
