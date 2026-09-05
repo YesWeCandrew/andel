@@ -34,7 +34,7 @@ export function MealPlanEntryCard({ entry, onOpen, onRemove }: MealPlanEntryCard
             <PizzaSlice width={20} height={20} strokeWidth={1.6} className={styles.photoPlaceholder} />
           ) : null}
         </span>
-        <span className={styles.name}>{entry.recipe?.name ?? entry.note}</span>
+        <p className={styles.name}>{entry.recipe?.name ?? entry.note}</p>
       </button>
       <button
         type="button"
