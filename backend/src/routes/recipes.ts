@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
 import { asc, eq, inArray } from 'drizzle-orm'
 import { db } from '../db.ts'
-import { product, recipe, recipe_ingredient, unit } from '../schema.ts'
+import { meal_plan_entry, product, recipe, recipe_ingredient, unit } from '../schema.ts'
 import { findOrCreateProduct, findOrCreateUnit } from '../lib/productUnit.ts'
 import { addToShoppingList } from '../lib/shoppingListAdd.ts'
 import { MAX_PHOTO_BYTES, UPLOADS_DIR } from '../lib/uploads.ts'
@@ -191,6 +191,7 @@ export async function recipeRoutes(app: FastifyInstance) {
     }
 
     await db.delete(recipe_ingredient).where(eq(recipe_ingredient.recipe_id, recipeId))
+    await db.delete(meal_plan_entry).where(eq(meal_plan_entry.recipe_id, recipeId))
     await db.delete(recipe).where(eq(recipe.id, recipeId))
 
     return existing

@@ -43,6 +43,13 @@
       "when": 1788617260853,
       "tag": "0005_cheerful_jack_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788619435400,
+      "tag": "0006_material_overlord",
+      "breakpoints": true
     }
   ]
 }

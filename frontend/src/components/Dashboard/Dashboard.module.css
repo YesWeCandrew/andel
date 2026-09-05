@@ -1,6 +1,5 @@
 .dashboard {
   width: 100%;
-  max-width: 1080px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);

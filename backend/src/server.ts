@@ -12,6 +12,7 @@ import { shoppingListRoutes } from './routes/shopping_list.ts'
 import { productRoutes } from './routes/product.ts'
 import { unitRoutes } from './routes/unit.ts'
 import { recipeRoutes } from './routes/recipes.ts'
+import { mealPlanRoutes } from './routes/meal_plan.ts'
 import { MAX_PHOTO_BYTES, UPLOADS_DIR } from './lib/uploads.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -26,6 +27,7 @@ app.register(shoppingListRoutes, { prefix: '/api' })
 app.register(productRoutes, { prefix: '/api' })
 app.register(unitRoutes, { prefix: '/api' })
 app.register(recipeRoutes, { prefix: '/api' })
+app.register(mealPlanRoutes, { prefix: '/api' })
 
 // Serve the built frontend (see frontend/Dockerfile build stage, which
 // copies its `dist/` output to backend/public at image build time). This is

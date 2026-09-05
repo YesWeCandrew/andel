@@ -82,3 +82,14 @@ export const recipe_ingredient = sqliteTable('recipe_ingredient',
         note: text('note')
     }
 )
+
+export const meal_plan_entry = sqliteTable('meal_plan_entry',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        date: text('date').notNull(),
+        recipe_id: integer('recipe_id').references(() => recipe.id),
+        note: text('note'),
+        sort_order: integer('sort_order').notNull().default(0),
+        created_on: integer('created_on', { mode: 'timestamp' }).notNull()
+    }
+)
