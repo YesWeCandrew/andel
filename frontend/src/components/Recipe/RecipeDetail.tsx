@@ -6,8 +6,10 @@ import { useUnits } from '../../hooks/useUnits'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { recipeApi, scaleQuantity } from '../../api/recipe'
 import type { CreateRecipeInput } from '../../api/recipe'
-import { formatQuantity } from './recipeHelpers'
+import { formatQuantity } from '../../lib/format'
+import { getErrorMessage } from '../../lib/errors'
 import { RecipeForm } from './RecipeForm'
+import { FormOverlay } from '../shared/FormOverlay'
 import styles from './RecipeDetail.module.css'
 
 export function RecipeDetail() {
@@ -45,7 +47,7 @@ export function RecipeDetail() {
       await refresh()
       closeForm()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setFormSubmitting(false)
     }
@@ -58,7 +60,7 @@ export function RecipeDetail() {
       await recipeApi.remove(recipeId)
       navigate('/recipes')
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
       setFormSubmitting(false)
     }
   }
@@ -99,7 +101,7 @@ export function RecipeDetail() {
     try {
       await recipeApi.addIngredientToList(recipeId, ingredientId, quantity)
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Failed to add to shopping list')
+      setActionError(getErrorMessage(err, 'Failed to add to shopping list'))
     } finally {
       setAddingIds((prev) => {
         const next = new Set(prev)
@@ -120,7 +122,7 @@ export function RecipeDetail() {
       }))
       await recipeApi.addAllToList(recipeId, payload)
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Failed to add to shopping list')
+      setActionError(getErrorMessage(err, 'Failed to add to shopping list'))
     } finally {
       setAddingAll(false)
     }
@@ -236,20 +238,18 @@ export function RecipeDetail() {
       </div>
 
       {editFormOpen && (
-        <div className={styles.overlay} onClick={closeForm}>
-          <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
-            <RecipeForm
-              key={recipeId}
-              initialRecipe={recipe}
-              units={units}
-              onSubmit={handleFormSubmit}
-              onCancel={closeForm}
-              onDelete={handleFormDelete}
-              submitting={formSubmitting}
-              error={formError}
-            />
-          </div>
-        </div>
+        <FormOverlay onClose={closeForm} maxWidth={720} align="top">
+          <RecipeForm
+            key={recipeId}
+            initialRecipe={recipe}
+            units={units}
+            onSubmit={handleFormSubmit}
+            onCancel={closeForm}
+            onDelete={handleFormDelete}
+            submitting={formSubmitting}
+            error={formError}
+          />
+        </FormOverlay>
       )}
     </div>
   )

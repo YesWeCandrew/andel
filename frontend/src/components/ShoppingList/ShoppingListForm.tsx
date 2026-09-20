@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Xmark } from 'iconoir-react'
 import { productApi } from '../../api/shoppingList'
 import type { ProductSuggestion, ShoppingListItem, Unit } from '../../api/shoppingList'
+import { useProductAutocomplete } from '../../hooks/useProductAutocomplete'
 import styles from './ShoppingListForm.module.css'
 
 export interface ShoppingListFormValues {
@@ -39,43 +40,13 @@ export function ShoppingListForm({
   const [unit, setUnit] = useState(initialItem?.unit ?? '')
   const [productError, setProductError] = useState<string | null>(null)
 
-  const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([])
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
-  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Look up matching products as the user types — this is what lets picking a
-  // match auto-fill the quantity/unit it's most commonly bought with.
-  useEffect(() => {
-    const query = product.trim()
-    if (!query) return
-
-    let cancelled = false
-    const timeout = setTimeout(async () => {
-      try {
-        const results = await productApi.search(query)
-        if (!cancelled) setSuggestions(results)
-      } catch {
-        if (!cancelled) setSuggestions([])
-      }
-    }, 200)
-
-    return () => {
-      cancelled = true
-      clearTimeout(timeout)
-    }
-  }, [product])
-
-  useEffect(() => {
-    return () => {
-      if (blurTimeout.current) clearTimeout(blurTimeout.current)
-    }
-  }, [])
+  const { suggestions, suggestionsOpen, open, close, scheduleClose, setSuggestions } = useProductAutocomplete(product)
 
   function selectSuggestion(suggestion: ProductSuggestion) {
     setProduct(suggestion.product)
     if (suggestion.suggestedQuantity != null) setQuantity(suggestion.suggestedQuantity)
     setUnit(suggestion.suggestedUnit ?? '')
-    setSuggestionsOpen(false)
+    close()
   }
 
   async function handleDeleteSuggestion(suggestionId: number) {
@@ -123,14 +94,11 @@ export function ShoppingListForm({
             value={product}
             onChange={(e) => {
               setProduct(e.target.value)
-              setSuggestionsOpen(true)
+              open()
               if (productError) setProductError(null)
             }}
-            onFocus={() => setSuggestionsOpen(true)}
-            onBlur={() => {
-              // Delay so a click on a suggestion registers before the list closes.
-              blurTimeout.current = setTimeout(() => setSuggestionsOpen(false), 150)
-            }}
+            onFocus={open}
+            onBlur={scheduleClose}
             placeholder="Asparagus"
             autoComplete="off"
             autoFocus

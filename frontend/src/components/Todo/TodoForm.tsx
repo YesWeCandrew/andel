@@ -2,11 +2,8 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Xmark } from 'iconoir-react'
 import type { Todo, UpsertTodoInput } from '../../api/todos'
+import { toISODate } from '../../lib/date'
 import styles from './TodoForm.module.css'
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 interface TodoFormProps {
   /** Omit (or pass null) to create a new todo; pass a todo to edit it. */
@@ -24,7 +21,7 @@ export function TodoForm({ initialTodo, onSubmit, onCancel, onDelete, submitting
   const [title, setTitle] = useState(initialTodo?.title ?? '')
   const [emoji, setEmoji] = useState(initialTodo?.emoji ?? '')
   const [notes, setNotes] = useState(initialTodo?.notes ?? '')
-  const [nextCompletionOn, setNextCompletionOn] = useState(initialTodo?.next_completion_on ?? todayIsoDate())
+  const [nextCompletionOn, setNextCompletionOn] = useState(initialTodo?.next_completion_on ?? toISODate(new Date()))
   const [repeats, setRepeats] = useState(Boolean(initialTodo?.frequency_days))
   const [frequencyDays, setFrequencyDays] = useState(initialTodo?.frequency_days ?? 7)
   const [titleError, setTitleError] = useState<string | null>(null)

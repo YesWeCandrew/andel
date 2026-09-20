@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { CheckCircle, CheckCircleSolid, NavArrowLeft, Plus } from 'iconoir-react'
+import { CheckCircle, CheckCircleSolid, Plus } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { getLastCompletedMap, getTodoStatus } from './todoHelpers'
+import { getErrorMessage } from '../../lib/errors'
+import { WidgetHeader } from '../shared/WidgetHeader'
+import { FormOverlay } from '../shared/FormOverlay'
 import type { UpsertTodoInput } from '../../api/todos'
 import styles from './TodoWidget.module.css'
 
@@ -118,7 +121,7 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
       await remove([editingTodo.id])
       closeForm()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setFormSubmitting(false)
     }
@@ -135,7 +138,7 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
       }
       closeForm()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setFormSubmitting(false)
     }
@@ -143,18 +146,10 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
 
   return (
     <div className={`${styles.widget} ${isTile ? styles.tile : styles.full}`}>
-      <div
-        className={styles.header}
-        onClick={isTile ? onExpand : undefined}
-        role={isTile && onExpand ? 'button' : undefined}
-        tabIndex={isTile && onExpand ? 0 : undefined}
-      >
-        <CheckCircle className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
-        <h2>To do</h2>
-        <span className={styles.count}>{dueCount} due</span>
+      <WidgetHeader icon={CheckCircle} title="To do" count={`${dueCount} due`} isTile={isTile} onExpand={onExpand}>
         <button
           type="button"
-          className={`button button-secondary ${styles.newButton}`}
+          className="button button-secondary"
           onClick={(event) => {
             event.stopPropagation()
             setShowCompleted((prev) => !prev)
@@ -178,18 +173,7 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
           <Plus width={14} height={14} strokeWidth={2.2} />
           New
         </button>
-        {!isTile && (
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={() => navigate('/')}
-            aria-label="Back to dashboard"
-            title="Back"
-          >
-            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
-          </button>
-        )}
-      </div>
+      </WidgetHeader>
 
       {error && <p className={styles.error}>{error}</p>}
 
@@ -222,19 +206,17 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
       )}
 
       {formOpen && (
-        <div className={styles.overlay} onClick={closeForm}>
-          <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
-            <TodoForm
-              key={idParam}
-              initialTodo={editingTodo}
-              onSubmit={handleFormSubmit}
-              onCancel={closeForm}
-              onDelete={editingTodo ? handleDelete : undefined}
-              submitting={formSubmitting}
-              error={formError}
-            />
-          </div>
-        </div>
+        <FormOverlay onClose={closeForm}>
+          <TodoForm
+            key={idParam}
+            initialTodo={editingTodo}
+            onSubmit={handleFormSubmit}
+            onCancel={closeForm}
+            onDelete={editingTodo ? handleDelete : undefined}
+            submitting={formSubmitting}
+            error={formError}
+          />
+        </FormOverlay>
       )}
     </div>
   )

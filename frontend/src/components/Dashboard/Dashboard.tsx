@@ -5,7 +5,7 @@ import { ShoppingListWidget } from '../ShoppingList/ShoppingListWidget'
 import { RecipeWidget } from '../Recipe/RecipeWidget'
 import { MealPlanWidget } from '../MealPlan/MealPlanWidget'
 import { usePageTitle } from '../../hooks/usePageTitle'
-import { formatDisplayDate, formatDisplayTime, getGreeting } from './dashboardHelpers'
+import { formatDisplayDate, formatDisplayTime, getGreeting } from '../../lib/date'
 import styles from './Dashboard.module.css'
 
 export function Dashboard() {

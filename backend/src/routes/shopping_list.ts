@@ -5,6 +5,8 @@ import { db } from '../db.ts'
 import { shopping_list } from '../schema.ts'
 import { findOrCreateProduct, findOrCreateUnit } from '../lib/productUnit.ts'
 import { addToShoppingList, allShoppingListItems, getShoppingListItem } from '../lib/shoppingListAdd.ts'
+import { findOrNotFound } from '../lib/notFound.ts'
+import { parseIdsQuery } from '../lib/parseIds.ts'
 import type { AddShoppingListItemInput, UpdateShoppingListItemInput } from '../../../shared/shopping_list.ts'
 
 export async function shoppingListRoutes(app: FastifyInstance) {
@@ -45,11 +47,12 @@ export async function shoppingListRoutes(app: FastifyInstance) {
     const itemId = Number(id)
     const body = request.body as UpdateShoppingListItemInput
 
-    const [existing] = await db.select().from(shopping_list).where(eq(shopping_list.id, itemId))
-    if (!existing) {
-      reply.code(404)
-      return { error: 'Shopping list item not found' }
-    }
+    const existing = await findOrNotFound(
+      db.select().from(shopping_list).where(eq(shopping_list.id, itemId)),
+      reply,
+      'Shopping list item',
+    )
+    if (!existing) return
 
     const updates: Partial<typeof shopping_list.$inferInsert> = {}
 
@@ -81,11 +84,12 @@ export async function shoppingListRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const itemId = Number(id)
 
-    const [existing] = await db.select().from(shopping_list).where(eq(shopping_list.id, itemId))
-    if (!existing) {
-      reply.code(404)
-      return { error: 'Shopping list item not found' }
-    }
+    const existing = await findOrNotFound(
+      db.select().from(shopping_list).where(eq(shopping_list.id, itemId)),
+      reply,
+      'Shopping list item',
+    )
+    if (!existing) return
 
     await db.update(shopping_list)
       .set({ active: false, completed_on: new Date() })
@@ -98,17 +102,8 @@ export async function shoppingListRoutes(app: FastifyInstance) {
   app.delete('/shopping_list', async (request, reply) => {
     const { ids } = request.query as { ids?: string }
 
-    if (!ids) {
-      reply.code(400)
-      return { error: 'ids query parameter is required' }
-    }
-
-    const itemIds = ids.split(',').map(Number)
-
-    if (itemIds.some(Number.isNaN)) {
-      reply.code(400)
-      return { error: 'ids must be a comma-separated list of numbers' }
-    }
+    const itemIds = parseIdsQuery(ids, reply)
+    if (!itemIds) return
 
     const deleted = await db.delete(shopping_list)
       .where(inArray(shopping_list.id, itemIds))

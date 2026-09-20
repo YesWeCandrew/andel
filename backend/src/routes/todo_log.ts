@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import { eq, desc } from 'drizzle-orm'
 import { db } from '../db.ts'
 import { todo_log } from '../schema.ts'
+import { findOrNotFound } from '../lib/notFound.ts'
 
 export async function todo_logRoutes(app: FastifyInstance) {
 
@@ -17,12 +18,8 @@ export async function todo_logRoutes(app: FastifyInstance) {
   app.get('/todo_log/:id', async (request, reply) => {
     const { id } = request.params as { id: string }
 
-    const [log] = await db.select().from(todo_log).where(eq(todo_log.id, Number(id)))
-
-    if (!log) {
-      reply.code(404)
-      return { error: 'Log entry not found' }
-    }
+    const log = await findOrNotFound(db.select().from(todo_log).where(eq(todo_log.id, Number(id))), reply, 'Log entry')
+    if (!log) return
 
     return log
   })
@@ -39,14 +36,12 @@ export async function todo_logRoutes(app: FastifyInstance) {
   app.delete('/todo_log/:id', async (request, reply) => {
     const { id } = request.params as { id: string }
 
-    const [deleted] = await db.delete(todo_log)
-      .where(eq(todo_log.id, Number(id)))
-      .returning()
-
-    if (!deleted) {
-      reply.code(404)
-      return { error: 'Log entry not found' }
-    }
+    const deleted = await findOrNotFound(
+      db.delete(todo_log).where(eq(todo_log.id, Number(id))).returning(),
+      reply,
+      'Log entry',
+    )
+    if (!deleted) return
 
     return deleted
   })

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Search, Xmark } from 'iconoir-react'
 import { useRecipes } from '../../hooks/useRecipes'
 import { RecipeCard } from '../Recipe/RecipeCard'
+import { filterRecipes } from '../../lib/search'
 import styles from './MealPlanAddForm.module.css'
 
 interface MealPlanAddFormProps {
@@ -25,19 +26,10 @@ export function MealPlanAddForm({
   const { recipes } = useRecipes()
   const [search, setSearch] = useState('')
 
-  // Same client-side substring match as RecipeWidget's search — the full
-  // recipe list is already loaded and household-scale, so there's no need
-  // for a backend search endpoint here.
-  const query = search.trim().toLowerCase()
-  const matches = useMemo(() => {
-    if (!query) return recipes
-    return recipes.filter(
-      (r) =>
-        r.name.toLowerCase().includes(query) ||
-        (r.description ?? '').toLowerCase().includes(query) ||
-        r.ingredientNames.some((name) => name.toLowerCase().includes(query)),
-    )
-  }, [recipes, query])
+  // The full recipe list is already loaded and household-scale, so there's
+  // no need for a backend search endpoint here.
+  const query = search.trim()
+  const matches = useMemo(() => filterRecipes(recipes, query), [recipes, query])
 
   function handleAddNote(event: FormEvent) {
     event.preventDefault()

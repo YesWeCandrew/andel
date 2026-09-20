@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { NavArrowLeft, PizzaSlice, Plus, Search } from 'iconoir-react'
+import { PizzaSlice, Plus, Search } from 'iconoir-react'
 import { useRecipes } from '../../hooks/useRecipes'
 import { useUnits } from '../../hooks/useUnits'
 import { usePageTitle } from '../../hooks/usePageTitle'
@@ -9,6 +9,10 @@ import type { CreateRecipeInput } from '../../api/recipe'
 import { RecipeCard } from './RecipeCard'
 import { RecipeForm } from './RecipeForm'
 import { pickRandom } from './recipeHelpers'
+import { filterRecipes } from '../../lib/search'
+import { getErrorMessage } from '../../lib/errors'
+import { WidgetHeader } from '../shared/WidgetHeader'
+import { FormOverlay } from '../shared/FormOverlay'
 import styles from './RecipeWidget.module.css'
 
 interface RecipeWidgetProps {
@@ -52,7 +56,7 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
       if (photoFile) await recipeApi.uploadPhoto(saved.id, photoFile)
       navigate(`/recipes/${saved.id}`)
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setFormSubmitting(false)
     }
@@ -62,16 +66,8 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
   // which is exactly when a fresh random selection makes sense.
   const randomRecipes = useMemo(() => pickRandom(recipes, maxTileItems), [recipes, maxTileItems])
 
-  const query = search.trim().toLowerCase()
-  const filteredRecipes = useMemo(() => {
-    if (!query) return recipes
-    return recipes.filter(
-      (r) =>
-        r.name.toLowerCase().includes(query) ||
-        (r.description ?? '').toLowerCase().includes(query) ||
-        r.ingredientNames.some((name) => name.toLowerCase().includes(query)),
-    )
-  }, [recipes, query])
+  const query = search.trim()
+  const filteredRecipes = useMemo(() => filterRecipes(recipes, query), [recipes, query])
 
   const visibleRecipes = isTile ? randomRecipes : filteredRecipes
 
@@ -81,15 +77,7 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
 
   return (
     <div className={`${styles.widget} ${isTile ? styles.tile : styles.full}`}>
-      <div
-        className={styles.header}
-        onClick={isTile ? onExpand : undefined}
-        role={isTile && onExpand ? 'button' : undefined}
-        tabIndex={isTile && onExpand ? 0 : undefined}
-      >
-        <PizzaSlice className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
-        <h2>Recipes</h2>
-        <span className={styles.count}>{recipes.length} recipes</span>
+      <WidgetHeader icon={PizzaSlice} title="Recipes" count={`${recipes.length} recipes`} isTile={isTile} onExpand={onExpand}>
         <button
           type="button"
           className="button button-primary"
@@ -101,18 +89,7 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
           <Plus width={14} height={14} strokeWidth={2.2} />
           New
         </button>
-        {!isTile && (
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={() => navigate('/')}
-            aria-label="Back to dashboard"
-            title="Back"
-          >
-            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
-          </button>
-        )}
-      </div>
+      </WidgetHeader>
 
       {!isTile && (
         <div className={styles.searchRow}>
@@ -150,17 +127,15 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
       )}
 
       {newFormOpen && (
-        <div className={styles.overlay} onClick={closeForm}>
-          <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
-            <RecipeForm
-              units={units}
-              onSubmit={handleFormSubmit}
-              onCancel={closeForm}
-              submitting={formSubmitting}
-              error={formError}
-            />
-          </div>
-        </div>
+        <FormOverlay onClose={closeForm} maxWidth={720} align="top">
+          <RecipeForm
+            units={units}
+            onSubmit={handleFormSubmit}
+            onCancel={closeForm}
+            submitting={formSubmitting}
+            error={formError}
+          />
+        </FormOverlay>
       )}
     </div>
   )

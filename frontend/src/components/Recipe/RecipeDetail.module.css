@@ -201,27 +201,6 @@
   color: var(--color-danger);
 }
 
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(43, 51, 46, 0.35);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: var(--space-5);
-  overflow-y: auto;
-  z-index: 100;
-}
-
-.panel {
-  width: min(720px, 100%);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-6);
-  margin: auto 0;
-}
-
 @media (max-width: 720px) {
   .detail {
     padding: var(--space-4);

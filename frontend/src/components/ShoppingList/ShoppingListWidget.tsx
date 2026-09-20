@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Cart, CheckCircle, CheckCircleSolid, NavArrowLeft, Plus } from 'iconoir-react'
+import { Cart, CheckCircle, CheckCircleSolid, Plus } from 'iconoir-react'
 import { useShoppingList } from '../../hooks/useShoppingList'
 import { ShoppingListItem } from './ShoppingListItem'
 import { ShoppingListForm } from './ShoppingListForm'
 import type { ShoppingListFormValues } from './ShoppingListForm'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { getErrorMessage } from '../../lib/errors'
+import { WidgetHeader } from '../shared/WidgetHeader'
+import { FormOverlay } from '../shared/FormOverlay'
 import styles from './ShoppingListWidget.module.css'
 
 interface ShoppingListWidgetProps {
@@ -107,7 +110,7 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
       await remove([editingItem.id])
       closeForm()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setFormSubmitting(false)
     }
@@ -124,7 +127,7 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
       }
       closeForm()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setFormSubmitting(false)
     }
@@ -132,18 +135,16 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
 
   return (
     <div className={`${styles.widget} ${isTile ? styles.tile : styles.full}`}>
-      <div
-        className={styles.header}
-        onClick={isTile ? onExpand : undefined}
-        role={isTile && onExpand ? 'button' : undefined}
-        tabIndex={isTile && onExpand ? 0 : undefined}
+      <WidgetHeader
+        icon={Cart}
+        title="Shopping list"
+        count={`${activeItems.length} items`}
+        isTile={isTile}
+        onExpand={onExpand}
       >
-        <Cart className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
-        <h2>Shopping list</h2>
-        <span className={styles.count}>{activeItems.length} items</span>
         <button
           type="button"
-          className={`button button-secondary ${styles.showCompletedButton}`}
+          className="button button-secondary"
           onClick={(event) => {
             event.stopPropagation()
             setShowCompleted((prev) => !prev)
@@ -167,18 +168,7 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
           <Plus width={14} height={14} strokeWidth={2.2} />
           New
         </button>
-        {!isTile && (
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={() => navigate('/')}
-            aria-label="Back to dashboard"
-            title="Back"
-          >
-            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
-          </button>
-        )}
-      </div>
+      </WidgetHeader>
 
       {error && <p className={styles.error}>{error}</p>}
 
@@ -209,20 +199,18 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
       )}
 
       {formOpen && (
-        <div className={styles.overlay} onClick={closeForm}>
-          <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
-            <ShoppingListForm
-              key={idParam}
-              initialItem={editingItem}
-              units={units}
-              onSubmit={handleFormSubmit}
-              onCancel={closeForm}
-              onDelete={editingItem ? handleDelete : undefined}
-              submitting={formSubmitting}
-              error={formError}
-            />
-          </div>
-        </div>
+        <FormOverlay onClose={closeForm}>
+          <ShoppingListForm
+            key={idParam}
+            initialItem={editingItem}
+            units={units}
+            onSubmit={handleFormSubmit}
+            onCancel={closeForm}
+            onDelete={editingItem ? handleDelete : undefined}
+            submitting={formSubmitting}
+            error={formError}
+          />
+        </FormOverlay>
       )}
     </div>
   )

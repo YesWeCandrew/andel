@@ -11,6 +11,7 @@ import { meal_plan_entry, product, recipe, recipe_ingredient, unit } from '../sc
 import { findOrCreateProduct, findOrCreateUnit } from '../lib/productUnit.ts'
 import { addToShoppingList } from '../lib/shoppingListAdd.ts'
 import { MAX_PHOTO_BYTES, UPLOADS_DIR } from '../lib/uploads.ts'
+import { findOrNotFound } from '../lib/notFound.ts'
 import type {
   AddAllRecipeIngredientsToListInput,
   AddRecipeIngredientToListInput,
@@ -148,11 +149,8 @@ export async function recipeRoutes(app: FastifyInstance) {
     const recipeId = Number(id)
     const body = request.body as UpdateRecipeInput
 
-    const [existing] = await db.select().from(recipe).where(eq(recipe.id, recipeId))
-    if (!existing) {
-      reply.code(404)
-      return { error: 'Recipe not found' }
-    }
+    const existing = await findOrNotFound(db.select().from(recipe).where(eq(recipe.id, recipeId)), reply, 'Recipe')
+    if (!existing) return
 
     const updates: Partial<typeof recipe.$inferInsert> = {}
 
@@ -184,11 +182,8 @@ export async function recipeRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const recipeId = Number(id)
 
-    const [existing] = await db.select().from(recipe).where(eq(recipe.id, recipeId))
-    if (!existing) {
-      reply.code(404)
-      return { error: 'Recipe not found' }
-    }
+    const existing = await findOrNotFound(db.select().from(recipe).where(eq(recipe.id, recipeId)), reply, 'Recipe')
+    if (!existing) return
 
     await db.delete(recipe_ingredient).where(eq(recipe_ingredient.recipe_id, recipeId))
     await db.delete(meal_plan_entry).where(eq(meal_plan_entry.recipe_id, recipeId))
@@ -203,11 +198,8 @@ export async function recipeRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const recipeId = Number(id)
 
-    const [existing] = await db.select().from(recipe).where(eq(recipe.id, recipeId))
-    if (!existing) {
-      reply.code(404)
-      return { error: 'Recipe not found' }
-    }
+    const existing = await findOrNotFound(db.select().from(recipe).where(eq(recipe.id, recipeId)), reply, 'Recipe')
+    if (!existing) return
 
     const file = await request.file()
     if (!file) {
@@ -247,12 +239,12 @@ export async function recipeRoutes(app: FastifyInstance) {
     const { ingredientId } = request.params as { id: string; ingredientId: string }
     const body = request.body as AddRecipeIngredientToListInput
 
-    const [ingredient] = await db.select().from(recipe_ingredient)
-      .where(eq(recipe_ingredient.id, Number(ingredientId)))
-    if (!ingredient) {
-      reply.code(404)
-      return { error: 'Ingredient not found' }
-    }
+    const ingredient = await findOrNotFound(
+      db.select().from(recipe_ingredient).where(eq(recipe_ingredient.id, Number(ingredientId))),
+      reply,
+      'Ingredient',
+    )
+    if (!ingredient) return
 
     const { item } = await addToShoppingList({
       productId: ingredient.product_id,

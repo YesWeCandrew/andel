@@ -1,45 +1,13 @@
 .widget {
-  position: relative;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  composes: widget from '../shared/widget.module.css';
 }
 
 .full {
-  width: 100%;
+  composes: full from '../shared/widget.module.css';
 }
 
 .tile {
-  width: 100%;
-  max-height: 420px;
-}
-
-.tile .header {
-  cursor: pointer;
-}
-
-.header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  padding: var(--space-6) var(--space-6) var(--space-5);
-}
-
-.headerIcon {
-  color: var(--color-accent);
-  flex: none;
-}
-
-.count {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-faint);
-  margin-right: auto;
+  composes: tile from '../shared/widget.module.css';
 }
 
 .row {
@@ -59,59 +27,18 @@
 }
 
 .seeAll {
-  width: 100%;
-  background: none;
-  border: none;
-  padding: var(--space-3) var(--space-6);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-accent);
-  border-top: 1px solid var(--color-border);
-}
-
-.seeAll:hover {
-  background: var(--color-surface-muted);
+  composes: seeAll from '../shared/widget.module.css';
 }
 
 .empty {
-  margin: 0;
-  padding: 0 var(--space-6) var(--space-6);
-  font-size: var(--text-sm);
-  color: var(--color-text-faint);
+  composes: empty from '../shared/widget.module.css';
 }
 
 .error {
-  margin: 0 var(--space-6) var(--space-4);
-  font-size: var(--text-sm);
-  color: var(--color-danger);
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(43, 51, 46, 0.35);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: var(--space-5);
-  overflow-y: auto;
-  z-index: 100;
-}
-
-.panel {
-  width: min(480px, 100%);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-6);
-  margin: auto 0;
+  composes: error from '../shared/widget.module.css';
 }
 
 @media (max-width: 640px) {
-  .header {
-    padding: var(--space-5) var(--space-4) var(--space-4);
-  }
-
   .row {
     flex-direction: column;
     overflow-x: visible;

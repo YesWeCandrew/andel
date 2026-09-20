@@ -4,6 +4,7 @@ import { todoLogApi } from '../../api/todos'
 import type { Todo, TodoLog } from '../../api/todos'
 import type { TodoStatus } from './todoHelpers'
 import { formatLastLabel, formatNextLabel, formatRelativeToNow, formatTargetLabel } from './todoHelpers'
+import { getErrorMessage } from '../../lib/errors'
 import styles from './TodoItem.module.css'
 
 interface TodoItemProps {
@@ -44,7 +45,7 @@ export function TodoItem({ todo, status, lastCompletedOn, completing = false, on
       const logs = await todoLogApi.listForTodo(todo.id)
       setHistoryLogs(logs)
     } catch (err) {
-      setHistoryError(err instanceof Error ? err.message : 'Failed to load history')
+      setHistoryError(getErrorMessage(err, 'Failed to load history'))
     } finally {
       setHistoryLoading(false)
     }

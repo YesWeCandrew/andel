@@ -3,6 +3,8 @@ import type { FastifyInstance } from 'fastify'
 import { asc, eq, inArray } from 'drizzle-orm'
 import { db } from '../db.ts'
 import { todo, todo_log } from '../schema.ts'
+import { findOrNotFound } from '../lib/notFound.ts'
+import { parseIdsQuery } from '../lib/parseIds.ts'
 import type { UpsertTodoInput } from '../../../shared/todo.ts'
 
 export async function todoRoutes(app: FastifyInstance) {
@@ -36,22 +38,22 @@ export async function todoRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const body = request.body as UpsertTodoInput
 
-    const [updated] = await db.update(todo)
-      .set({
-        title: body.title ? body.title : 'New reminder',
-        active: body.active,
-        emoji: body.emoji,
-        notes: body.notes,
-        frequency_days: body.frequency_days,
-        next_completion_on: body.next_completion_on ? new Date(body.next_completion_on) : undefined,
-      })
-      .where(eq(todo.id, Number(id)))
-      .returning()
-
-    if (!updated) {
-      reply.code(404)
-      return { error: 'Todo not found' }
-    }
+    const updated = await findOrNotFound(
+      db.update(todo)
+        .set({
+          title: body.title ? body.title : 'New reminder',
+          active: body.active,
+          emoji: body.emoji,
+          notes: body.notes,
+          frequency_days: body.frequency_days,
+          next_completion_on: body.next_completion_on ? new Date(body.next_completion_on) : undefined,
+        })
+        .where(eq(todo.id, Number(id)))
+        .returning(),
+      reply,
+      'Todo',
+    )
+    if (!updated) return
 
     return updated
   })
@@ -61,12 +63,8 @@ export async function todoRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const todoId = Number(id)
 
-    const [existing] = await db.select().from(todo).where(eq(todo.id, todoId))
-
-    if (!existing) {
-      reply.code(404)
-      return { error: 'Todo not found' }
-    }
+    const existing = await findOrNotFound(db.select().from(todo).where(eq(todo.id, todoId)), reply, 'Todo')
+    if (!existing) return
 
     const now = new Date()
 
@@ -91,17 +89,8 @@ export async function todoRoutes(app: FastifyInstance) {
   app.delete('/todo', async (request, reply) => {
     const { ids } = request.query as { ids?: string }
 
-    if (!ids) {
-      reply.code(400)
-      return { error: 'ids query parameter is required' }
-    }
-
-    const todoIds = ids.split(',').map(Number)
-
-    if (todoIds.some(Number.isNaN)) {
-      reply.code(400)
-      return { error: 'ids must be a comma-separated list of numbers' }
-    }
+    const todoIds = parseIdsQuery(ids, reply)
+    if (!todoIds) return
 
     await db.delete(todo_log)
       .where(inArray(todo_log.todo_id, todoIds))

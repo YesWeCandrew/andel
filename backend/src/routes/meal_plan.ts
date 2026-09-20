@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm'
 import { db } from '../db.ts'
 import { meal_plan_entry, recipe } from '../schema.ts'
+import { findOrNotFound } from '../lib/notFound.ts'
 import type { CreateMealPlanEntryInput, ReorderMealPlanInput } from '../../../shared/meal_plan.ts'
 
 function mealPlanQuery() {
@@ -68,11 +69,12 @@ export async function mealPlanRoutes(app: FastifyInstance) {
     }
 
     if (body.recipe_id) {
-      const [existingRecipe] = await db.select().from(recipe).where(eq(recipe.id, body.recipe_id))
-      if (!existingRecipe) {
-        reply.code(404)
-        return { error: 'Recipe not found' }
-      }
+      const existingRecipe = await findOrNotFound(
+        db.select().from(recipe).where(eq(recipe.id, body.recipe_id)),
+        reply,
+        'Recipe',
+      )
+      if (!existingRecipe) return
     }
 
     const existingForDay = await db.select().from(meal_plan_entry).where(eq(meal_plan_entry.date, date))
@@ -125,11 +127,12 @@ export async function mealPlanRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const entryId = Number(id)
 
-    const [existing] = await db.select().from(meal_plan_entry).where(eq(meal_plan_entry.id, entryId))
-    if (!existing) {
-      reply.code(404)
-      return { error: 'Meal plan entry not found' }
-    }
+    const existing = await findOrNotFound(
+      db.select().from(meal_plan_entry).where(eq(meal_plan_entry.id, entryId)),
+      reply,
+      'Meal plan entry',
+    )
+    if (!existing) return
 
     await db.delete(meal_plan_entry).where(eq(meal_plan_entry.id, entryId))
 

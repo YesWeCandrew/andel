@@ -1,0 +1,47 @@
+.widget {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.full {
+  width: 100%;
+}
+
+.tile {
+  width: 100%;
+  max-height: 420px;
+}
+
+.empty {
+  margin: 0;
+  padding: 0 var(--space-6) var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+}
+
+.error {
+  margin: 0 var(--space-6) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.seeAll {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent);
+  border-top: 1px solid var(--color-border);
+}
+
+.seeAll:hover {
+  background: var(--color-surface-muted);
+}

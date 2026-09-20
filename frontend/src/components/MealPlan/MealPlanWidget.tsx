@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, NavArrowLeft } from 'iconoir-react'
+import { Calendar } from 'iconoir-react'
 import {
   DndContext,
   PointerSensor,
@@ -15,6 +15,9 @@ import { usePageTitle } from '../../hooks/usePageTitle'
 import { addDaysISO, formatDayLabel, toISODate } from './mealPlanHelpers'
 import { MealPlanDay, DAY_CONTAINER_PREFIX } from './MealPlanDay'
 import { MealPlanAddForm } from './MealPlanAddForm'
+import { getErrorMessage } from '../../lib/errors'
+import { WidgetHeader } from '../shared/WidgetHeader'
+import { FormOverlay } from '../shared/FormOverlay'
 import styles from './MealPlanWidget.module.css'
 
 const TILE_DAYS = 3
@@ -152,7 +155,7 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
       await create({ date: addingDate, recipe_id: recipeId })
       setAddingDate(null)
     } catch (err) {
-      setAddError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setAddError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setAddSubmitting(false)
     }
@@ -166,7 +169,7 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
       await create({ date: addingDate, note })
       setAddingDate(null)
     } catch (err) {
-      setAddError(err instanceof Error ? err.message : 'Something went wrong, please try again')
+      setAddError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {
       setAddSubmitting(false)
     }
@@ -199,27 +202,7 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
 
   return (
     <div className={`${styles.widget} ${isTile ? styles.tile : styles.full}`}>
-      <div
-        className={styles.header}
-        onClick={isTile ? onExpand : undefined}
-        role={isTile && onExpand ? 'button' : undefined}
-        tabIndex={isTile && onExpand ? 0 : undefined}
-      >
-        <Calendar className={styles.headerIcon} width={32} height={32} strokeWidth={1.7} />
-        <h2>Meal planner</h2>
-        <span className={styles.count}>{entries.length} planned</span>
-        {!isTile && (
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={() => navigate('/')}
-            aria-label="Back to dashboard"
-            title="Back"
-          >
-            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
-          </button>
-        )}
-      </div>
+      <WidgetHeader icon={Calendar} title="Meal planner" count={`${entries.length} planned`} isTile={isTile} onExpand={onExpand} />
 
       {error && <p className={styles.error}>{error}</p>}
 
@@ -256,18 +239,16 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
       )}
 
       {addingDate && (
-        <div className={styles.overlay} onClick={() => setAddingDate(null)}>
-          <div className={styles.panel} onClick={(event) => event.stopPropagation()}>
-            <MealPlanAddForm
-              dayLabel={formatDayLabel(addingDate, todayIso)}
-              onSelectRecipe={handleSelectRecipe}
-              onAddNote={handleAddNote}
-              onCancel={() => setAddingDate(null)}
-              submitting={addSubmitting}
-              error={addError}
-            />
-          </div>
-        </div>
+        <FormOverlay onClose={() => setAddingDate(null)} maxWidth={480} align="top">
+          <MealPlanAddForm
+            dayLabel={formatDayLabel(addingDate, todayIso)}
+            onSelectRecipe={handleSelectRecipe}
+            onAddNote={handleAddNote}
+            onCancel={() => setAddingDate(null)}
+            submitting={addSubmitting}
+            error={addError}
+          />
+        </FormOverlay>
       )}
     </div>
   )

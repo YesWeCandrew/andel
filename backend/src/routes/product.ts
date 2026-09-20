@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import { and, asc, count, desc, eq, like, sql } from 'drizzle-orm'
 import { db } from '../db.ts'
 import { product, product_unit_history, unit } from '../schema.ts'
+import { findOrNotFound } from '../lib/notFound.ts'
 import type { ProductSuggestion } from '../../../shared/shopping_list.ts'
 
 const SUGGESTION_LIMIT = 8
@@ -58,15 +59,12 @@ export async function productRoutes(app: FastifyInstance) {
   app.delete('/product/:id', async (request, reply) => {
     const { id } = request.params as { id: string }
 
-    const [updated] = await db.update(product)
-      .set({ active: false })
-      .where(eq(product.id, Number(id)))
-      .returning()
-
-    if (!updated) {
-      reply.code(404)
-      return { error: 'Product not found' }
-    }
+    const updated = await findOrNotFound(
+      db.update(product).set({ active: false }).where(eq(product.id, Number(id))).returning(),
+      reply,
+      'Product',
+    )
+    if (!updated) return
 
     return updated
   })

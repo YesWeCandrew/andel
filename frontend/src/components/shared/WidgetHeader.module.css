@@ -1,0 +1,29 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-6) var(--space-6) var(--space-5);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.headerIcon {
+  color: var(--color-accent);
+  flex: none;
+}
+
+.count {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-faint);
+  margin-right: auto;
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: var(--space-5) var(--space-4) var(--space-4);
+  }
+}

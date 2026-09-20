@@ -1,14 +1,9 @@
 import type { Todo, TodoLog } from '../../api/todos'
+import { formatRelativeToNow, startOfDay } from '../../lib/date'
 
 export type TodoStatus = 'overdue' | 'due-today' | 'upcoming' | 'unscheduled'
 
-const DAY_MS = 24 * 60 * 60 * 1000
-
-function startOfDay(date: Date): Date {
-  const copy = new Date(date)
-  copy.setHours(0, 0, 0, 0)
-  return copy
-}
+export { formatRelativeToNow }
 
 /** Where a todo sits relative to today, based on next_completion_on. */
 export function getTodoStatus(todo: Todo, now: Date = new Date()): TodoStatus {
@@ -20,19 +15,6 @@ export function getTodoStatus(todo: Todo, now: Date = new Date()): TodoStatus {
   if (due < today) return 'overdue'
   if (due === today) return 'due-today'
   return 'upcoming'
-}
-
-/** "today" / "tomorrow" / "in 3 days" / "2 days ago", relative to now. */
-export function formatRelativeToNow(dateInput: string | Date, now: Date = new Date()): string {
-  const date = startOfDay(new Date(dateInput))
-  const today = startOfDay(now)
-  const diffDays = Math.round((date.getTime() - today.getTime()) / DAY_MS)
-
-  if (diffDays === 0) return 'today'
-  if (diffDays === 1) return 'tomorrow'
-  if (diffDays === -1) return 'yesterday'
-  if (diffDays > 1) return `in ${diffDays} days`
-  return `${Math.abs(diffDays)} days ago`
 }
 
 export function formatNextLabel(todo: Todo): string {

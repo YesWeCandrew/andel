@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { Xmark } from 'iconoir-react'
-import { productApi } from '../../api/shoppingList'
 import type { ProductSuggestion, Unit } from '../../api/shoppingList'
+import { useProductAutocomplete } from '../../hooks/useProductAutocomplete'
 import styles from './RecipeIngredientField.module.css'
 
 export interface RecipeIngredientRowValue {
@@ -23,36 +23,8 @@ interface RecipeIngredientFieldProps {
 // UX as ShoppingListForm's product field) plus quantity/unit and a remove
 // button. Used as a repeatable row inside RecipeForm.
 export function RecipeIngredientField({ value, units, onChange, onRemove, removable }: RecipeIngredientFieldProps) {
-  const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([])
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
-  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const datalistId = useRef(`recipe-units-${Math.random().toString(36).slice(2)}`).current
-
-  useEffect(() => {
-    const query = value.product.trim()
-    if (!query) return
-
-    let cancelled = false
-    const timeout = setTimeout(async () => {
-      try {
-        const results = await productApi.search(query)
-        if (!cancelled) setSuggestions(results)
-      } catch {
-        if (!cancelled) setSuggestions([])
-      }
-    }, 200)
-
-    return () => {
-      cancelled = true
-      clearTimeout(timeout)
-    }
-  }, [value.product])
-
-  useEffect(() => {
-    return () => {
-      if (blurTimeout.current) clearTimeout(blurTimeout.current)
-    }
-  }, [])
+  const { suggestions, suggestionsOpen, open, close, scheduleClose } = useProductAutocomplete(value.product)
 
   function selectSuggestion(suggestion: ProductSuggestion) {
     onChange({
@@ -60,7 +32,7 @@ export function RecipeIngredientField({ value, units, onChange, onRemove, remova
       quantity: suggestion.suggestedQuantity ?? value.quantity,
       unit: suggestion.suggestedUnit ?? value.unit,
     })
-    setSuggestionsOpen(false)
+    close()
   }
 
   return (
@@ -71,13 +43,10 @@ export function RecipeIngredientField({ value, units, onChange, onRemove, remova
           value={value.product}
           onChange={(event) => {
             onChange({ product: event.target.value })
-            setSuggestionsOpen(true)
+            open()
           }}
-          onFocus={() => setSuggestionsOpen(true)}
-          onBlur={() => {
-            // Delay so a click on a suggestion registers before the list closes.
-            blurTimeout.current = setTimeout(() => setSuggestionsOpen(false), 150)
-          }}
+          onFocus={open}
+          onBlur={scheduleClose}
           placeholder="Ingredient"
           autoComplete="off"
         />

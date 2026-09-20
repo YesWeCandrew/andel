@@ -1,32 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { mealPlanApi } from '../api/mealplan'
-import type { CreateMealPlanEntryInput, MealPlanEntry } from '../api/mealplan'
+import type { CreateMealPlanEntryInput } from '../api/mealplan'
+import { useAsyncList } from './useAsyncList'
 
 // Fetches meal plan entries for a date range and re-fetches the whole range
-// after every mutation — same convention as useRecipes/useShoppingList (a
-// household's planned meals over a few weeks is a small dataset, so a full
-// refresh is simpler and safer than hand-rolled cache patching).
+// after every mutation.
 export function useMealPlan(start: string, end: string) {
-  const [entries, setEntries] = useState<MealPlanEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const refresh = useCallback(async () => {
-    try {
-      const next = await mealPlanApi.list(start, end)
-      setEntries(next)
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load meal plan')
-    } finally {
-      setLoading(false)
-    }
-  }, [start, end])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh()
-  }, [refresh])
+  const fetcher = useCallback(() => mealPlanApi.list(start, end), [start, end])
+  const { data, loading, error, refresh } = useAsyncList(fetcher, 'Failed to load meal plan')
+  const entries = data ?? []
 
   const create = useCallback(
     async (input: CreateMealPlanEntryInput) => {
