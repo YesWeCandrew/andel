@@ -1,6 +1,6 @@
 **/node_modules
 **/dist
-backend/db
+backend/data
 *.db
 *.sqlite
 .git

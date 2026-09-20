@@ -8,7 +8,7 @@ primary_region = 'lhr'
 
 [build]
 [env]
-  DB_PATH = '/data/db.db'
+  DATA_DIR = '/data'
   PORT = '3000'
 
 [[mounts]]
