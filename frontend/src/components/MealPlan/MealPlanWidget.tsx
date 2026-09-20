@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar } from 'iconoir-react'
 import {
@@ -22,6 +22,10 @@ import styles from './MealPlanWidget.module.css'
 
 const TILE_DAYS = 3
 const PAGE_DAYS = 14
+// Smaller than PAGE_DAYS: backward paging is triggered by raw wheel/touch
+// deltas rather than an IntersectionObserver, so a big page makes it very
+// easy to way overshoot into the past with one scroll gesture.
+const BACK_PAGE_DAYS = 3
 
 interface MealPlanWidgetProps {
   /**
@@ -40,14 +44,30 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
 
   const todayIso = useMemo(() => toISODate(new Date()), [])
   const [daysLoaded, setDaysLoaded] = useState(PAGE_DAYS)
+  // Days loaded before today (full variant only) — stays 0 until the user
+  // scrolls/swipes past the start of the row, at which point it grows in
+  // PAGE_DAYS steps (see the wheel/touch handlers below).
+  const [daysBefore, setDaysBefore] = useState(0)
   const visibleDayCount = isTile ? TILE_DAYS : daysLoaded
+  const startIso = useMemo(() => addDaysISO(todayIso, -daysBefore), [todayIso, daysBefore])
   const endIso = useMemo(() => addDaysISO(todayIso, visibleDayCount - 1), [todayIso, visibleDayCount])
 
-  const { entries, loading, error, create, remove, reorder } = useMealPlan(todayIso, endIso)
+  const { entries, loading, error, create, remove, reorder } = useMealPlan(startIso, endIso)
+
+  // Every mutation and every infinite-scroll page-in re-triggers `loading`
+  // (useMealPlan refetches the whole range rather than patching locally), so
+  // only the very first load should swap the row out for a placeholder —
+  // otherwise the scroll container would remount, and with it the scroll
+  // position, on every add/remove/reorder/page-in.
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!loading) setHasLoadedOnce(true)
+  }, [loading])
 
   const days = useMemo(
-    () => Array.from({ length: visibleDayCount }, (_, i) => addDaysISO(todayIso, i)),
-    [todayIso, visibleDayCount],
+    () => Array.from({ length: daysBefore + visibleDayCount }, (_, i) => addDaysISO(todayIso, i - daysBefore)),
+    [todayIso, visibleDayCount, daysBefore],
   )
 
   // Per-day ordering of entry ids, derived from the fetched entries.
@@ -200,13 +220,65 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
     return () => observer.disconnect()
   }, [isTile])
 
+  // Backward scroll (full variant only): there's nothing before today to
+  // observe with an IntersectionObserver (the row already starts there), so
+  // instead we watch for the user pushing past the start — a wheel/trackpad
+  // scroll or touch drag "backward" while already at the row's start edge —
+  // and load another page of past days on demand.
+  const prevScrollSizeRef = useRef<{ width: number; height: number } | null>(null)
+  const loadingPastRef = useRef(false)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+
+  function loadPastDays() {
+    const root = scrollRef.current
+    if (isTile || !root || loadingPastRef.current) return
+    loadingPastRef.current = true
+    prevScrollSizeRef.current = { width: root.scrollWidth, height: root.scrollHeight }
+    setDaysBefore((prev) => prev + BACK_PAGE_DAYS)
+  }
+
+  function handleWheel(event: React.WheelEvent<HTMLDivElement>) {
+    const root = scrollRef.current
+    if (!root || root.scrollLeft > 0 || root.scrollTop > 0) return
+    const delta = Math.abs(event.deltaX) >= Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+    if (delta < 0) loadPastDays()
+  }
+
+  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    const touch = event.touches[0]
+    touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null
+  }
+
+  function handleTouchMove(event: React.TouchEvent<HTMLDivElement>) {
+    const root = scrollRef.current
+    const start = touchStartRef.current
+    const touch = event.touches[0]
+    if (!root || !start || !touch || root.scrollLeft > 0 || root.scrollTop > 0) return
+    if (touch.clientX - start.x > 0 || touch.clientY - start.y > 0) loadPastDays()
+  }
+
+  // Prepending columns shifts everything already on screen, so we snapshot
+  // the scrollable size just before growing (above) and re-apply the delta
+  // here, keeping whatever the user was looking at in the same place
+  // instead of jumping.
+  useLayoutEffect(() => {
+    const root = scrollRef.current
+    const prev = prevScrollSizeRef.current
+    if (root && prev) {
+      root.scrollLeft += root.scrollWidth - prev.width
+      root.scrollTop += root.scrollHeight - prev.height
+    }
+    prevScrollSizeRef.current = null
+    loadingPastRef.current = false
+  }, [daysBefore])
+
   return (
     <div className={`${styles.widget} ${isTile ? styles.tile : styles.full}`}>
       <WidgetHeader icon={Calendar} title="Meal planner" count={`${entries.length} planned`} isTile={isTile} onExpand={onExpand} />
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {loading ? (
+      {loading && !hasLoadedOnce ? (
         <p className={styles.empty}>Loading…</p>
       ) : (
         <DndContext
@@ -215,7 +287,13 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div ref={scrollRef} className={styles.row}>
+          <div
+            ref={scrollRef}
+            className={styles.row}
+            onWheel={isTile ? undefined : handleWheel}
+            onTouchStart={isTile ? undefined : handleTouchStart}
+            onTouchMove={isTile ? undefined : handleTouchMove}
+          >
             {days.map((day) => (
               <MealPlanDay
                 key={day}

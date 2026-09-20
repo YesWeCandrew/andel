@@ -107,6 +107,11 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
+
+  /* Keep content clear of the notch/status bar and home indicator when
+     running full-screen as an installed iOS home-screen app. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 
 #root {
