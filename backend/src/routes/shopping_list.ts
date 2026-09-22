@@ -36,7 +36,7 @@ export async function shoppingListRoutes(app: FastifyInstance) {
     const unitRow = await findOrCreateUnit(body.unit)
     const unitId = unitRow?.id ?? null
 
-    const { item, created } = await addToShoppingList({ productId: productRow.id, unitId, quantity })
+    const { item, created } = await addToShoppingList({ productId: productRow.id, unitId, quantity, source: null })
     if (created) reply.code(201)
     return item
   })

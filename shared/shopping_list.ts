@@ -1,5 +1,14 @@
 // Wire-format contract for the /shopping_list, /product and /unit endpoints.
 // Dates travel over JSON as ISO strings; the backend converts to/from Date at the DB boundary.
+// A single way an item ended up on the list, rendered as a tag. A manual
+// add has recipeId/recipeName both null; an add from a recipe carries a
+// name snapshot so the tag still reads correctly if the recipe is later
+// renamed or deleted (only a still-existing recipeId makes the tag clickable).
+export interface ShoppingListItemSource {
+  recipeId: number | null
+  recipeName: string | null
+}
+
 export interface ShoppingListItem {
   id: number
   active: boolean
@@ -10,6 +19,7 @@ export interface ShoppingListItem {
   unit: string | null
   product_id: number | null
   product: string | null
+  sources: ShoppingListItemSource[]
 }
 
 export interface Unit {

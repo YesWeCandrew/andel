@@ -34,6 +34,21 @@ export const shopping_list = sqliteTable('shopping_list',
     }
 )
 
+// Records each distinct way an item ended up on the shopping list — a
+// manual add (recipe_id/recipe_name both null) or a specific recipe
+// (recipe_name is a snapshot, so the tag still reads correctly if the
+// recipe is later renamed or deleted). One item can carry several rows,
+// one per way it was added, which the frontend renders as tags.
+export const shopping_list_source = sqliteTable('shopping_list_source',
+    {
+        id: integer('id').primaryKey({ autoIncrement: true }),
+        shopping_list_id: integer('shopping_list_id').notNull().references(() => shopping_list.id, { onDelete: 'cascade' }),
+        recipe_id: integer('recipe_id').references(() => recipe.id, { onDelete: 'set null' }),
+        recipe_name: text('recipe_name'),
+        created_on: integer('created_on', { mode: 'timestamp' }).notNull()
+    }
+)
+
 export const unit = sqliteTable('unit',
     {
         id: integer('id').primaryKey({ autoIncrement: true }),

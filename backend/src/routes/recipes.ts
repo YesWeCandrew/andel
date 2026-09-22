@@ -236,7 +236,7 @@ export async function recipeRoutes(app: FastifyInstance) {
   // POST /recipes/:id/ingredients/:ingredientId/add-to-list — add one
   // ingredient's (already servings-scaled) quantity to the shopping list.
   app.post('/recipes/:id/ingredients/:ingredientId/add-to-list', async (request, reply) => {
-    const { ingredientId } = request.params as { id: string; ingredientId: string }
+    const { id, ingredientId } = request.params as { id: string; ingredientId: string }
     const body = request.body as AddRecipeIngredientToListInput
 
     const ingredient = await findOrNotFound(
@@ -246,10 +246,17 @@ export async function recipeRoutes(app: FastifyInstance) {
     )
     if (!ingredient) return
 
+    const [recipeRow] = await db.select({ id: recipe.id, name: recipe.name }).from(recipe).where(eq(recipe.id, Number(id)))
+    if (!recipeRow) {
+      reply.code(404)
+      return { error: 'Recipe not found' }
+    }
+
     const { item } = await addToShoppingList({
       productId: ingredient.product_id,
       unitId: ingredient.unit_id,
       quantity: body.quantity,
+      source: { recipeId: recipeRow.id, recipeName: recipeRow.name },
     })
     return item
   })
@@ -257,8 +264,15 @@ export async function recipeRoutes(app: FastifyInstance) {
   // POST /recipes/:id/add-all-to-list — add every given ingredient's
   // (already servings-scaled) quantity to the shopping list in one request.
   app.post('/recipes/:id/add-all-to-list', async (request, reply) => {
+    const { id } = request.params as { id: string }
     const body = request.body as AddAllRecipeIngredientsToListInput
     const ingredientIds = body.ingredients.map((i) => i.ingredientId)
+
+    const [recipeRow] = await db.select({ id: recipe.id, name: recipe.name }).from(recipe).where(eq(recipe.id, Number(id)))
+    if (!recipeRow) {
+      reply.code(404)
+      return { error: 'Recipe not found' }
+    }
 
     const rows = ingredientIds.length
       ? await db.select().from(recipe_ingredient).where(inArray(recipe_ingredient.id, ingredientIds))
@@ -269,7 +283,12 @@ export async function recipeRoutes(app: FastifyInstance) {
     for (const { ingredientId, quantity } of body.ingredients) {
       const row = rowsById.get(ingredientId)
       if (!row) continue
-      const { item } = await addToShoppingList({ productId: row.product_id, unitId: row.unit_id, quantity })
+      const { item } = await addToShoppingList({
+        productId: row.product_id,
+        unitId: row.unit_id,
+        quantity,
+        source: { recipeId: recipeRow.id, recipeName: recipeRow.name },
+      })
       results.push(item)
     }
 

@@ -1,4 +1,5 @@
 import { Check } from 'iconoir-react'
+import { useNavigate } from 'react-router-dom'
 import type { ShoppingListItem as ShoppingListItemType } from '../../api/shoppingList'
 import { formatItemQuantity } from './shoppingListHelpers'
 import styles from './ShoppingListItem.module.css'
@@ -12,6 +13,13 @@ interface ShoppingListItemProps {
 }
 
 export function ShoppingListItem({ item, completing = false, onComplete, onEdit }: ShoppingListItemProps) {
+  const navigate = useNavigate()
+
+  function handleSourceTagClick(event: React.MouseEvent, recipeId: number) {
+    event.stopPropagation()
+    navigate(`/recipes/${recipeId}`)
+  }
+
   return (
     <li className={styles.item}>
       <button
@@ -29,6 +37,25 @@ export function ShoppingListItem({ item, completing = false, onComplete, onEdit 
         <span className={`${styles.title} ${completing ? styles.titleDone : ''}`}>
           <span className={styles.quantity}>{formatItemQuantity(item)}</span> {item.product}
         </span>
+        {item.sources.length > 0 && (
+          <span className={styles.tags}>
+            {item.sources.map((source, index) =>
+              source.recipeId !== null ? (
+                <span
+                  key={`recipe-${source.recipeId}-${index}`}
+                  className={`tag ${styles.sourceTag}`}
+                  onClick={(event) => handleSourceTagClick(event, source.recipeId!)}
+                >
+                  {source.recipeName}
+                </span>
+              ) : (
+                <span key={`manual-${index}`} className="tag">
+                  Manual
+                </span>
+              ),
+            )}
+          </span>
+        )}
       </button>
     </li>
   )

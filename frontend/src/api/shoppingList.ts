@@ -4,11 +4,20 @@ import type {
   Product,
   ProductSuggestion,
   ShoppingListItem,
+  ShoppingListItemSource,
   Unit,
   UpdateShoppingListItemInput,
 } from '../../../shared/shopping_list'
 
-export type { AddShoppingListItemInput, Product, ProductSuggestion, ShoppingListItem, Unit, UpdateShoppingListItemInput }
+export type {
+  AddShoppingListItemInput,
+  Product,
+  ProductSuggestion,
+  ShoppingListItem,
+  ShoppingListItemSource,
+  Unit,
+  UpdateShoppingListItemInput,
+}
 
 export const shoppingListApi = {
   list: () => api.get<ShoppingListItem[]>('/shopping_list'),

@@ -41,6 +41,7 @@
 .body {
   display: flex;
   flex-direction: column;
+  gap: var(--space-2);
   min-width: 0;
   flex: 1;
   background: none;
@@ -51,7 +52,19 @@
   color: inherit;
 }
 
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
 
+.sourceTag {
+  cursor: pointer;
+}
+
+.sourceTag:hover {
+  filter: brightness(0.95);
+}
 
 .titleDone {
   color: var(--color-text-disabled);
