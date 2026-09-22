@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Cart, EditPencil, Minus, NavArrowLeft, Plus } from 'iconoir-react'
+import { Cart, EditPencil, Minus, Plus } from 'iconoir-react'
 import { useRecipe } from '../../hooks/useRecipe'
 import { useUnits } from '../../hooks/useUnits'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { useGoBack } from '../../hooks/useGoBack'
 import { recipeApi, scaleQuantity } from '../../api/recipe'
 import type { CreateRecipeInput } from '../../api/recipe'
 import { formatQuantity } from '../../lib/format'
 import { getErrorMessage } from '../../lib/errors'
 import { RecipeForm } from './RecipeForm'
 import { FormOverlay } from '../shared/FormOverlay'
+import { BackButton } from '../shared/BackButton'
 import styles from './RecipeDetail.module.css'
 
 export function RecipeDetail() {
   const { id } = useParams<{ id: string }>()
   const recipeId = Number(id)
   const navigate = useNavigate()
+  const goBack = useGoBack()
   const location = useLocation()
   const units = useUnits()
 
@@ -35,7 +38,9 @@ export function RecipeDetail() {
 
   function closeForm() {
     setFormError(null)
-    navigate(`/recipes/${recipeId}`, { replace: true })
+    // Pop the /edit entry rather than pushing the detail view again, so the
+    // back button doesn't land on this same recipe a second time.
+    goBack(`/recipes/${recipeId}`)
   }
 
   async function handleFormSubmit(input: CreateRecipeInput, photoFile: File | null) {
@@ -58,7 +63,8 @@ export function RecipeDetail() {
     setFormError(null)
     try {
       await recipeApi.remove(recipeId)
-      navigate('/recipes')
+      // Step back past both the /edit entry and the now-deleted recipe's page.
+      goBack('/recipes', 2)
     } catch (err) {
       setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
       setFormSubmitting(false)
@@ -74,7 +80,9 @@ export function RecipeDetail() {
   if (loading) {
     return (
       <div className={styles.detail}>
-        <BackLink onClick={() => navigate('/recipes')} />
+        <div className={styles.header}>
+          <BackButton fallback="/recipes" />
+        </div>
         <p className={styles.empty}>Loading…</p>
       </div>
     )
@@ -83,7 +91,9 @@ export function RecipeDetail() {
   if (error || !recipe) {
     return (
       <div className={styles.detail}>
-        <BackLink onClick={() => navigate('/recipes')} />
+        <div className={styles.header}>
+          <BackButton fallback="/recipes" />
+        </div>
         <p className={styles.empty}>{error ?? 'Recipe not found.'}</p>
       </div>
     )
@@ -152,15 +162,7 @@ export function RecipeDetail() {
             <Cart width={14} height={14} strokeWidth={2.2} />
             {addingAll ? 'Adding…' : 'Add all to shopping list'}
           </button>
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={() => navigate('/recipes')}
-            aria-label="Back to recipes"
-            title="Back"
-          >
-            <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
-          </button>
+          <BackButton fallback="/recipes" />
         </div>
       </div>
 
@@ -252,13 +254,5 @@ export function RecipeDetail() {
         </FormOverlay>
       )}
     </div>
-  )
-}
-
-function BackLink({ onClick }: { onClick: () => void }) {
-  return (
-    <button type="button" className={styles.backLink} onClick={onClick} aria-label="Back to recipes" title="Back">
-      <NavArrowLeft width={16} height={16} strokeWidth={2.2} />
-    </button>
   )
 }

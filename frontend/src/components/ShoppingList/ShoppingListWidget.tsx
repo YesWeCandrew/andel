@@ -6,6 +6,7 @@ import { ShoppingListItem } from './ShoppingListItem'
 import { ShoppingListForm } from './ShoppingListForm'
 import type { ShoppingListFormValues } from './ShoppingListForm'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { useGoBack } from '../../hooks/useGoBack'
 import { getErrorMessage } from '../../lib/errors'
 import { WidgetHeader } from '../shared/WidgetHeader'
 import { FormOverlay } from '../shared/FormOverlay'
@@ -26,6 +27,7 @@ interface ShoppingListWidgetProps {
 export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 3 }: ShoppingListWidgetProps) {
   const { items, units, loading, error, create, update, complete, remove } = useShoppingList()
   const navigate = useNavigate()
+  const goBack = useGoBack()
   const location = useLocation()
   const { id: idParam } = useParams<{ id?: string }>()
 
@@ -78,13 +80,9 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
 
   function closeForm() {
     setFormError(null)
-    if (tileNewFormOpen) {
-      // Pop the history entry openCreateForm pushed, rather than pushing yet
-      // another one, so the browser back button doesn't have to step over it.
-      navigate(-1)
-    } else {
-      navigate('/shoppinglist', { replace: true })
-    }
+    // Pop the history entry the form was opened with, rather than pushing
+    // another one, so the back button doesn't have to step over it.
+    goBack(isTile ? location.pathname : '/shoppinglist')
   }
 
   async function handleComplete(id: number) {

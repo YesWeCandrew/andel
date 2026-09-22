@@ -11,23 +11,6 @@
   gap: var(--space-5);
 }
 
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  align-self: flex-start;
-  background: none;
-  border: none;
-  padding: var(--space-1) 0;
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
-}
-
-.backLink:hover {
-  color: var(--color-accent);
-}
-
 .photo {
   width: 100%;
   max-height: 320px;

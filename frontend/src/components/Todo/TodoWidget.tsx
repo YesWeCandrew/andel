@@ -5,6 +5,7 @@ import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { useGoBack } from '../../hooks/useGoBack'
 import { getLastCompletedMap, getTodoStatus } from './todoHelpers'
 import { getErrorMessage } from '../../lib/errors'
 import { WidgetHeader } from '../shared/WidgetHeader'
@@ -28,6 +29,7 @@ interface TodoWidgetProps {
 export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: TodoWidgetProps) {
   const { todos, logs, loading, error, create, update, complete, remove } = useTodos()
   const navigate = useNavigate()
+  const goBack = useGoBack()
   const location = useLocation()
   const { id: idParam } = useParams<{ id?: string }>()
 
@@ -89,13 +91,9 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
 
   function closeForm() {
     setFormError(null)
-    if (tileNewFormOpen) {
-      // Pop the history entry openCreateForm pushed, rather than pushing yet
-      // another one, so the browser back button doesn't have to step over it.
-      navigate(-1)
-    } else {
-      navigate('/todo', { replace: true })
-    }
+    // Pop the history entry the form was opened with, rather than pushing
+    // another one, so the back button doesn't have to step over it.
+    goBack(isTile ? location.pathname : '/todo')
   }
 
   async function handleComplete(id: number) {

@@ -4,6 +4,7 @@ import { PizzaSlice, Plus, Search } from 'iconoir-react'
 import { useRecipes } from '../../hooks/useRecipes'
 import { useUnits } from '../../hooks/useUnits'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { useGoBack } from '../../hooks/useGoBack'
 import { recipeApi } from '../../api/recipe'
 import type { CreateRecipeInput } from '../../api/recipe'
 import { RecipeCard } from './RecipeCard'
@@ -31,6 +32,7 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
   const { recipes, loading, error } = useRecipes()
   const units = useUnits()
   const navigate = useNavigate()
+  const goBack = useGoBack()
   const location = useLocation()
   const [search, setSearch] = useState('')
 
@@ -45,7 +47,8 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
 
   function closeForm() {
     setFormError(null)
-    navigate('/recipes', { replace: true })
+    // Pop the /recipes/new entry rather than pushing the list again.
+    goBack('/recipes')
   }
 
   async function handleFormSubmit(input: CreateRecipeInput, photoFile: File | null) {
@@ -54,7 +57,8 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
     try {
       const saved = await recipeApi.create(input)
       if (photoFile) await recipeApi.uploadPhoto(saved.id, photoFile)
-      navigate(`/recipes/${saved.id}`)
+      // Replace /recipes/new so going back from the new recipe skips the form.
+      navigate(`/recipes/${saved.id}`, { replace: true })
     } catch (err) {
       setFormError(getErrorMessage(err, 'Something went wrong, please try again'))
     } finally {

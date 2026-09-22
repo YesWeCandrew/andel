@@ -1,6 +1,5 @@
-import { NavArrowLeft } from 'iconoir-react'
-import { useNavigate } from 'react-router-dom'
 import type { ComponentType, ReactNode } from 'react'
+import { BackButton } from './BackButton'
 import styles from './WidgetHeader.module.css'
 
 interface IconProps {
@@ -24,11 +23,10 @@ interface WidgetHeaderProps {
 /**
  * Shared header row for every dashboard widget (Todo, ShoppingList, Recipe,
  * MealPlan): icon, title, count, then feature-specific actions, then — in
- * the full-page variant only — a back-to-dashboard button. In tile mode the
+ * the full-page variant only — a back button. In tile mode the
  * whole row expands the tile when clicked.
  */
 export function WidgetHeader({ icon: Icon, title, count, isTile, onExpand, children }: WidgetHeaderProps) {
-  const navigate = useNavigate()
   const clickable = isTile && Boolean(onExpand)
 
   return (
@@ -42,17 +40,7 @@ export function WidgetHeader({ icon: Icon, title, count, isTile, onExpand, child
       <h2>{title}</h2>
       <span className={styles.count}>{count}</span>
       {children}
-      {!isTile && (
-        <button
-          type="button"
-          className="button button-secondary"
-          onClick={() => navigate('/')}
-          aria-label="Back to dashboard"
-          title="Back"
-        >
-          <NavArrowLeft width={14} height={14} strokeWidth={2.2} />
-        </button>
-      )}
+      {!isTile && <BackButton fallback="/" />}
     </div>
   )
 }
