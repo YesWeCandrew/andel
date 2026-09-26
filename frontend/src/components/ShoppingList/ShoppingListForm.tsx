@@ -4,6 +4,7 @@ import { Xmark } from 'iconoir-react'
 import { productApi } from '../../api/shoppingList'
 import type { ProductSuggestion, ShoppingListItem, Unit } from '../../api/shoppingList'
 import { useProductAutocomplete } from '../../hooks/useProductAutocomplete'
+import { UnitSelect } from '../shared/UnitSelect'
 import styles from './ShoppingListForm.module.css'
 
 export interface ShoppingListFormValues {
@@ -15,7 +16,7 @@ export interface ShoppingListFormValues {
 interface ShoppingListFormProps {
   /** Omit (or pass null) to add a new item; pass an item to edit it. */
   initialItem?: ShoppingListItem | null
-  /** Existing units, offered as suggestions in the unit field. */
+  /** Existing units, offered in the unit picker (most used first). */
   units: Unit[]
   onSubmit: (values: ShoppingListFormValues) => Promise<void> | void
   onCancel: () => void
@@ -153,20 +154,13 @@ export function ShoppingListForm({
           <label className={styles.label} htmlFor="shopping-item-unit">
             Unit
           </label>
-          <input
+          <UnitSelect
             id="shopping-item-unit"
             className={styles.input}
-            list="shopping-units"
             value={unit}
-            onChange={(e) => setUnit(e.target.value)}
-            placeholder="piece"
-            autoComplete="off"
+            units={units}
+            onChange={setUnit}
           />
-          <datalist id="shopping-units">
-            {units.map((u) => (
-              <option key={u.id} value={u.unit ?? ''} />
-            ))}
-          </datalist>
         </div>
       </div>
 

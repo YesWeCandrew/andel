@@ -1,7 +1,7 @@
-import { useId } from 'react'
 import { Xmark } from 'iconoir-react'
 import type { ProductSuggestion, Unit } from '../../api/shoppingList'
 import { useProductAutocomplete } from '../../hooks/useProductAutocomplete'
+import { UnitSelect } from '../shared/UnitSelect'
 import styles from './RecipeIngredientField.module.css'
 
 export interface RecipeIngredientRowValue {
@@ -23,7 +23,6 @@ interface RecipeIngredientFieldProps {
 // UX as ShoppingListForm's product field) plus quantity/unit and a remove
 // button. Used as a repeatable row inside RecipeForm.
 export function RecipeIngredientField({ value, units, onChange, onRemove, removable }: RecipeIngredientFieldProps) {
-  const datalistId = `recipe-units-${useId()}`
   const { suggestions, suggestionsOpen, open, close, scheduleClose } = useProductAutocomplete(value.product)
 
   function selectSuggestion(suggestion: ProductSuggestion) {
@@ -78,20 +77,12 @@ export function RecipeIngredientField({ value, units, onChange, onRemove, remova
         aria-label="Quantity"
       />
 
-      <input
+      <UnitSelect
         className={styles.unitInput}
-        list={datalistId}
         value={value.unit}
-        onChange={(event) => onChange({ unit: event.target.value })}
-        placeholder="unit"
-        autoComplete="off"
-        aria-label="Unit"
+        units={units}
+        onChange={(unit) => onChange({ unit })}
       />
-      <datalist id={datalistId}>
-        {units.map((u) => (
-          <option key={u.id} value={u.unit ?? ''} />
-        ))}
-      </datalist>
 
       <input
         className={styles.noteInput}
