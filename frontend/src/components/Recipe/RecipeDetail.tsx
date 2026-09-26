@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Cart, EditPencil, Minus, Plus } from 'iconoir-react'
 import { useRecipe } from '../../hooks/useRecipe'
@@ -25,7 +25,9 @@ export function RecipeDetail() {
   const { recipe, loading, error, refresh } = useRecipe(recipeId)
   usePageTitle(recipe ? recipe.name : 'Recipes')
 
-  const [servingsOverride, setServingsOverride] = useState<number | null>(null)
+  // Tagged with the recipe it was set on, so navigating to a different recipe
+  // starts back at its own base servings rather than carrying the adjustment over.
+  const [servingsOverride, setServingsOverride] = useState<{ recipeId: number; servings: number } | null>(null)
   const [addingIds, setAddingIds] = useState<Set<number>>(new Set())
   const [addingAll, setAddingAll] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -71,12 +73,6 @@ export function RecipeDetail() {
     }
   }
 
-  // A fresh recipe id (navigated from elsewhere) should start back at its
-  // own base servings, not carry over the previous recipe's adjustment.
-  useEffect(() => {
-    setServingsOverride(null)
-  }, [recipe?.id])
-
   if (loading) {
     return (
       <div className={styles.detail}>
@@ -99,10 +95,11 @@ export function RecipeDetail() {
     )
   }
 
-  const servings = servingsOverride ?? recipe.servings
+  const recipeIdLoaded = recipe.id
+  const servings = servingsOverride?.recipeId === recipeIdLoaded ? servingsOverride.servings : recipe.servings
 
   function changeServings(delta: number) {
-    setServingsOverride(Math.max(1, servings + delta))
+    setServingsOverride({ recipeId: recipeIdLoaded, servings: Math.max(1, servings + delta) })
   }
 
   async function handleAddOne(ingredientId: number, quantity: number) {

@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useId } from 'react'
 import { Xmark } from 'iconoir-react'
 import type { ProductSuggestion, Unit } from '../../api/shoppingList'
 import { useProductAutocomplete } from '../../hooks/useProductAutocomplete'
@@ -23,7 +23,7 @@ interface RecipeIngredientFieldProps {
 // UX as ShoppingListForm's product field) plus quantity/unit and a remove
 // button. Used as a repeatable row inside RecipeForm.
 export function RecipeIngredientField({ value, units, onChange, onRemove, removable }: RecipeIngredientFieldProps) {
-  const datalistId = useRef(`recipe-units-${Math.random().toString(36).slice(2)}`).current
+  const datalistId = `recipe-units-${useId()}`
   const { suggestions, suggestionsOpen, open, close, scheduleClose } = useProductAutocomplete(value.product)
 
   function selectSuggestion(suggestion: ProductSuggestion) {

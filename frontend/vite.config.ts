@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import legacy from '@vitejs/plugin-legacy'
+import { flexGapFallback } from './postcss/flexGapFallback.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,6 +14,12 @@ export default defineConfig({
       targets: ['defaults', 'iOS >= 9', 'Safari >= 9'],
     }),
   ],
+  css: {
+    postcss: {
+      // Margin fallbacks for flex `gap`, which Safari <14.1 ignores.
+      plugins: [flexGapFallback()],
+    },
+  },
   server: {
     // Backend (Fastify) runs on :3000 with no CORS headers configured, so
     // proxy API paths through the dev server and keep requests same-origin.

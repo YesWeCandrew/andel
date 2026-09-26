@@ -6,6 +6,8 @@
   box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
 }
 
