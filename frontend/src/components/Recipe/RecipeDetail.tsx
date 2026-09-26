@@ -12,6 +12,7 @@ import { getErrorMessage } from '../../lib/errors'
 import { RecipeForm } from './RecipeForm'
 import { FormOverlay } from '../shared/FormOverlay'
 import { BackButton } from '../shared/BackButton'
+import { WidgetHeader } from '../shared/WidgetHeader'
 import styles from './RecipeDetail.module.css'
 
 export function RecipeDetail() {
@@ -137,19 +138,12 @@ export function RecipeDetail() {
 
   return (
     <div className={styles.detail}>
-      <div className={styles.header}>
-        <div className={styles.headerText}>
-          <h2 className={styles.name}>{recipe.name}</h2>
-        </div>
-        <div className={styles.headerActions}>
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
-          >
-            <EditPencil width={14} height={14} strokeWidth={2.2} />
-            Edit
-          </button>
+      <WidgetHeader
+        title={recipe.name}
+        isTile={false}
+        backFallback="/recipes"
+        flush
+        primaryAction={
           <button
             type="button"
             className="button button-primary"
@@ -159,9 +153,17 @@ export function RecipeDetail() {
             <Cart width={14} height={14} strokeWidth={2.2} />
             {addingAll ? 'Adding…' : 'Add all to shopping list'}
           </button>
-          <BackButton fallback="/recipes" />
-        </div>
-      </div>
+        }
+      >
+        <button
+          type="button"
+          className="button button-secondary"
+          onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
+        >
+          <EditPencil width={14} height={14} strokeWidth={2.2} />
+          Edit
+        </button>
+      </WidgetHeader>
 
       {recipe.photo_path && <img src={recipe.photo_path} alt="" className={styles.photo} />}
 

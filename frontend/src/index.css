@@ -68,6 +68,10 @@
   --icon-size-md: 20px;
   --icon-size-lg: 26px;
 
+  /* ---- Control sizes ---- */
+  /* Tags' natural height (text + vertical padding); compact buttons match it. */
+  --tag-height: calc(var(--text-2xs) * 1.5 + var(--space-1) * 2);
+
   /* ---- Spacing scale ---- */
   --space-1: 4px;
   --space-2: 8px;
@@ -214,6 +218,7 @@ button {
 .tag {
   display: inline-flex;
   align-items: center;
+  min-height: var(--tag-height);
   font-size: var(--text-2xs);
   font-weight: var(--font-weight-medium);
   padding: var(--space-1) var(--space-2);

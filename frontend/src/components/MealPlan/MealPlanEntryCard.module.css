@@ -1,4 +1,3 @@
-/* Sized to match RecipeCard so meal plan entries look like the Recipes list. */
 .card {
   display: flex;
   align-items: center;

@@ -1,9 +1,23 @@
+/* Default (stacked) layout: icon, title and count on the first row, with the
+   actions on a second row aligned with the icon, shrunk to tag height.
+   Horizontal spacing uses margins rather than column-gap so an absent icon
+   or count leaves no stray gap. */
 .header {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'icon    title   count'
+    'actions actions actions';
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  row-gap: var(--space-2);
   padding: var(--space-6) var(--space-6) var(--space-5);
+}
+
+/* Everything on one row at full size — always on dashboard tiles, and in
+   the full view when it fits (see useFitsOnOneLine). */
+.oneLine {
+  grid-template-columns: auto auto 1fr auto;
+  grid-template-areas: 'icon title count actions';
 }
 
 .clickable {
@@ -11,19 +25,67 @@
 }
 
 .headerIcon {
+  grid-area: icon;
   color: var(--color-accent);
-  flex: none;
+  margin-right: var(--space-3);
+}
+
+.title {
+  grid-area: title;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.oneLine .title {
+  white-space: nowrap;
 }
 
 .count {
+  grid-area: count;
+  margin-left: var(--space-3);
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-faint);
-  margin-right: auto;
+  white-space: nowrap;
+}
+
+.oneLine .count {
+  justify-self: start;
+}
+
+.actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.oneLine .actions {
+  flex-wrap: nowrap;
+  margin-left: var(--space-3);
+}
+
+.actions > :global(.button) {
+  flex: none;
+  white-space: nowrap;
+}
+
+.header:not(.oneLine) .actions > :global(.button) {
+  min-height: var(--tag-height);
+  padding: 0 var(--space-2);
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-sm);
 }
 
 @media (max-width: 640px) {
   .header {
     padding: var(--space-5) var(--space-4) var(--space-4);
   }
+}
+
+/* After the media query so it wins at every width. */
+.flush {
+  padding: 0;
 }

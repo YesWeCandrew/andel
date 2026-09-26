@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { PizzaSlice, Plus, Search } from 'iconoir-react'
+import { PizzaSlice, Search } from 'iconoir-react'
 import { useRecipes } from '../../hooks/useRecipes'
 import { useUnits } from '../../hooks/useUnits'
 import { usePageTitle } from '../../hooks/usePageTitle'
@@ -13,6 +13,7 @@ import { pickRandom } from './recipeHelpers'
 import { filterRecipes } from '../../lib/search'
 import { getErrorMessage } from '../../lib/errors'
 import { WidgetHeader } from '../shared/WidgetHeader'
+import { NewButton } from '../shared/NewButton'
 import { FormOverlay } from '../shared/FormOverlay'
 import styles from './RecipeWidget.module.css'
 
@@ -81,19 +82,14 @@ export function RecipeWidget({ variant = 'full', onExpand, maxTileItems = 3 }: R
 
   return (
     <div className={`${styles.widget} ${isTile ? styles.tile : styles.full}`}>
-      <WidgetHeader icon={PizzaSlice} title="Recipes" count={`${recipes.length} recipes`} isTile={isTile} onExpand={onExpand}>
-        <button
-          type="button"
-          className="button button-primary"
-          onClick={(event) => {
-            event.stopPropagation()
-            navigate('/recipes/new')
-          }}
-        >
-          <Plus width={14} height={14} strokeWidth={2.2} />
-          New
-        </button>
-      </WidgetHeader>
+      <WidgetHeader
+        icon={PizzaSlice}
+        title="Recipes"
+        count={`${recipes.length} recipes`}
+        isTile={isTile}
+        onExpand={onExpand}
+        primaryAction={<NewButton onClick={() => navigate('/recipes/new')} />}
+      />
 
       {!isTile && (
         <div className={styles.searchRow}>

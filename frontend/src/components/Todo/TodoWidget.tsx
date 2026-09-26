@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { CheckCircle, CheckCircleSolid, Plus } from 'iconoir-react'
+import { CheckCircle, CheckCircleSolid } from 'iconoir-react'
 import { useTodos } from '../../hooks/useTodos'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
@@ -9,6 +9,7 @@ import { useGoBack } from '../../hooks/useGoBack'
 import { getLastCompletedMap, getTodoStatus } from './todoHelpers'
 import { getErrorMessage } from '../../lib/errors'
 import { WidgetHeader } from '../shared/WidgetHeader'
+import { NewButton } from '../shared/NewButton'
 import { FormOverlay } from '../shared/FormOverlay'
 import type { UpsertTodoInput } from '../../api/todos'
 import styles from './TodoWidget.module.css'
@@ -144,7 +145,14 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
 
   return (
     <div className={`${styles.widget} ${isTile ? styles.tile : styles.full}`}>
-      <WidgetHeader icon={CheckCircle} title="To do" count={`${dueCount} due`} isTile={isTile} onExpand={onExpand}>
+      <WidgetHeader
+        icon={CheckCircle}
+        title="To do"
+        count={`${dueCount} due`}
+        isTile={isTile}
+        onExpand={onExpand}
+        primaryAction={<NewButton onClick={openCreateForm} />}
+      >
         <button
           type="button"
           className="button button-secondary"
@@ -159,17 +167,6 @@ export function TodoWidget({ variant = 'full', onExpand, maxTileItems = 3 }: Tod
             <CheckCircleSolid width={14} height={14} strokeWidth={2.2} />
           )}
           {showCompleted ? 'Show active' : 'Show completed'}
-        </button>
-        <button
-          type="button"
-          className="button button-primary"
-          onClick={(event) => {
-            event.stopPropagation()
-            openCreateForm()
-          }}
-        >
-          <Plus width={14} height={14} strokeWidth={2.2} />
-          New
         </button>
       </WidgetHeader>
 

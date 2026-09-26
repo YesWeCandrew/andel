@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Cart, CheckCircle, CheckCircleSolid, Plus } from 'iconoir-react'
+import { Cart, CheckCircle, CheckCircleSolid } from 'iconoir-react'
 import { useShoppingList } from '../../hooks/useShoppingList'
 import { ShoppingListItem } from './ShoppingListItem'
 import { ShoppingListForm } from './ShoppingListForm'
@@ -9,6 +9,7 @@ import { usePageTitle } from '../../hooks/usePageTitle'
 import { useGoBack } from '../../hooks/useGoBack'
 import { getErrorMessage } from '../../lib/errors'
 import { WidgetHeader } from '../shared/WidgetHeader'
+import { NewButton } from '../shared/NewButton'
 import { FormOverlay } from '../shared/FormOverlay'
 import styles from './ShoppingListWidget.module.css'
 
@@ -139,6 +140,7 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
         count={`${activeItems.length} items`}
         isTile={isTile}
         onExpand={onExpand}
+        primaryAction={<NewButton onClick={openCreateForm} />}
       >
         <button
           type="button"
@@ -154,17 +156,6 @@ export function ShoppingListWidget({ variant = 'full', onExpand, maxTileItems = 
             <CheckCircleSolid width={14} height={14} strokeWidth={2.2} />
           )}
           {showCompleted ? 'Show active' : 'Show bought'}
-        </button>
-        <button
-          type="button"
-          className="button button-primary"
-          onClick={(event) => {
-            event.stopPropagation()
-            openCreateForm()
-          }}
-        >
-          <Plus width={14} height={14} strokeWidth={2.2} />
-          New
         </button>
       </WidgetHeader>
 
