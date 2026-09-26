@@ -43,6 +43,14 @@ docker compose up --build
 
 Runs the whole app (backend serving the built frontend) in one container, with a named volume (`db-data`) so the SQLite file persists across rebuilds/restarts. Migrations run automatically at container startup, before the server starts.
 
+## Authentication
+
+Every URL (API, uploads and the frontend) is behind a single shared password, read from the `APP_PASSWORD` env var (see `backend/src/lib/auth.ts`). The browser's native Basic auth prompt is shown once; a successful login sets a signed, 180 day long cookie so the prompt doesn't come back (iOS home-screen apps don't reliably keep Basic auth credentials).
+
+- **Production:** set it as a Fly runtime secret — `fly secrets set APP_PASSWORD='...'`. The server refuses to start in production without it.
+- **Locking everyone out:** set a new password. The cookie is signed with the password, so every existing session is invalidated immediately.
+- **Local dev:** leave `APP_PASSWORD` unset to disable auth, or set it (e.g. `APP_PASSWORD=test npm run dev`) to try the flow. `docker compose` defaults it to `password`.
+
 ## Deploying (Fly.io)
 
 ```

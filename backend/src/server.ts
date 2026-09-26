@@ -14,10 +14,14 @@ import { unitRoutes } from './routes/unit.ts'
 import { recipeRoutes } from './routes/recipes.ts'
 import { mealPlanRoutes } from './routes/meal_plan.ts'
 import { MAX_PHOTO_BYTES, UPLOADS_DIR } from './lib/uploads.ts'
+import { registerAuth } from './lib/auth.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const app = Fastify({ logger: true })
+
+// Before everything else, so it guards the API, uploads and the SPA alike.
+registerAuth(app)
 
 app.register(fastifyMultipart, { limits: { fileSize: MAX_PHOTO_BYTES } })
 

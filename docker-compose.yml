@@ -6,6 +6,7 @@ services:
     environment:
       - DATA_DIR=/data
       - PORT=3000
+      - APP_PASSWORD=${APP_PASSWORD:-password}
     volumes:
       - db-data:/data
 
