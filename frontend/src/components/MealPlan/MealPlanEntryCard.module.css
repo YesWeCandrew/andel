@@ -1,21 +1,28 @@
+/* Sized to match RecipeCard so meal plan entries look like the Recipes list. */
 .card {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   touch-action: none;
   user-select: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.card:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
 }
 
 .body {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   flex: 1;
   min-width: 0;
-  padding: var(--space-2);
+  padding: var(--space-3);
   background: none;
   border: none;
   text-align: left;
@@ -30,9 +37,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
   background: var(--color-surface-muted);
   overflow: hidden;
 }
@@ -47,10 +54,31 @@
   color: var(--color-text-faint);
 }
 
-.name {
-  font-size: var(--text-sm);
-  color: var(--color-text);
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
+  flex: 1;
+}
+
+.name {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.description {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
 .removeButton {
@@ -58,9 +86,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-right: var(--space-2);
+  width: 28px;
+  height: 28px;
+  margin-right: var(--space-3);
   background: none;
   border: none;
   border-radius: var(--radius-sm);

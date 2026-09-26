@@ -16,16 +16,17 @@ function mealPlanQuery() {
     created_on: meal_plan_entry.created_on,
     recipe_name: recipe.name,
     recipe_photo_path: recipe.photo_path,
+    recipe_description: recipe.description,
   })
     .from(meal_plan_entry)
     .leftJoin(recipe, eq(meal_plan_entry.recipe_id, recipe.id))
 }
 
 function toEntry(row: Awaited<ReturnType<typeof mealPlanQuery>>[number]) {
-  const { recipe_name, recipe_photo_path, ...entry } = row
+  const { recipe_name, recipe_photo_path, recipe_description, ...entry } = row
   return {
     ...entry,
-    recipe: entry.recipe_id !== null ? { id: entry.recipe_id, name: recipe_name!, photo_path: recipe_photo_path } : null,
+    recipe: entry.recipe_id !== null ? { id: entry.recipe_id, name: recipe_name!, description: recipe_description, photo_path: recipe_photo_path } : null,
   }
 }
 

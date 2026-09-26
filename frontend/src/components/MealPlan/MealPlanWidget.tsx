@@ -21,11 +21,9 @@ import { FormOverlay } from '../shared/FormOverlay'
 import styles from './MealPlanWidget.module.css'
 
 const TILE_DAYS = 3
-const PAGE_DAYS = 14
-// Smaller than PAGE_DAYS: backward paging is triggered by raw wheel/touch
-// deltas rather than an IntersectionObserver, so a big page makes it very
-// easy to way overshoot into the past with one scroll gesture.
-const BACK_PAGE_DAYS = 3
+const INITIAL_DAYS = 14
+// How many days each "See more" row loads, in either direction.
+const PAGE_DAYS = 7
 
 interface MealPlanWidgetProps {
   /**
@@ -43,10 +41,9 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
   usePageTitle(isTile ? undefined : 'Meal planner')
 
   const todayIso = useMemo(() => toISODate(new Date()), [])
-  const [daysLoaded, setDaysLoaded] = useState(PAGE_DAYS)
+  const [daysLoaded, setDaysLoaded] = useState(INITIAL_DAYS)
   // Days loaded before today (full variant only) — stays 0 until the user
-  // scrolls/swipes past the start of the row, at which point it grows in
-  // PAGE_DAYS steps (see the wheel/touch handlers below).
+  // clicks the "See more" row at the top, which grows it in PAGE_DAYS steps.
   const [daysBefore, setDaysBefore] = useState(0)
   const visibleDayCount = isTile ? TILE_DAYS : daysLoaded
   const startIso = useMemo(() => addDaysISO(todayIso, -daysBefore), [todayIso, daysBefore])
@@ -54,11 +51,11 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
 
   const { entries, loading, error, create, remove, reorder } = useMealPlan(startIso, endIso)
 
-  // Every mutation and every infinite-scroll page-in re-triggers `loading`
+  // Every mutation and every "See more" page-in re-triggers `loading`
   // (useMealPlan refetches the whole range rather than patching locally), so
   // only the very first load should swap the row out for a placeholder —
-  // otherwise the scroll container would remount, and with it the scroll
-  // position, on every add/remove/reorder/page-in.
+  // otherwise the list would remount, and with it the scroll position, on
+  // every add/remove/reorder/page-in.
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -195,81 +192,106 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
     }
   }
 
-  // Infinite scroll (full variant only): grow the loaded window as the user
-  // scrolls the row's scroll container near its end, in either axis (the
-  // container switches from horizontal scroll to a vertical stack on
-  // mobile, but IntersectionObserver clipping works the same either way).
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  // Prepending past days pushes everything already on screen down, so we
+  // snapshot the list's position just before growing and re-apply the delta
+  // afterwards, keeping whatever the user was looking at in the same place.
+  // The list may sit in its own scroll container (tile) or scroll with the
+  // page (full), so the offset is measured against the viewport and the
+  // correction applied to both.
+  const listRef = useRef<HTMLDivElement>(null)
+  const firstDayTopRef = useRef<number | null>(null)
+  const firstDayRef = useRef<string | null>(null)
+
+  function loadPastDays() {
+    const list = listRef.current
+    const firstDay = list?.querySelector<HTMLElement>('[data-day]')
+    if (firstDay) {
+      firstDayRef.current = firstDay.dataset.day ?? null
+      firstDayTopRef.current = firstDay.getBoundingClientRect().top
+    }
+    setDaysBefore((prev) => prev + PAGE_DAYS)
+    setShowPastMore(false)
+  }
+
+  function loadFutureDays() {
+    setDaysLoaded((prev) => prev + PAGE_DAYS)
+    setShowFutureMore(false)
+  }
+
+  // The "See more?" rows stay hidden until the user tries to scroll/swipe
+  // past an end of the list with nowhere further to go. The full view scrolls
+  // with the page, so both the window and the list itself must be at that
+  // end. Listeners sit on the window so the gesture counts wherever it lands.
+  const [showPastMore, setShowPastMore] = useState(false)
+  const [showFutureMore, setShowFutureMore] = useState(false)
+  const futureMoreRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (isTile) return
-    const root = scrollRef.current
-    const sentinel = sentinelRef.current
-    if (!root || !sentinel) return
 
-    const observer = new IntersectionObserver(
-      (observerEntries) => {
-        if (observerEntries[0]?.isIntersecting) {
-          setDaysLoaded((prev) => prev + PAGE_DAYS)
-        }
-      },
-      { root, rootMargin: '400px' },
-    )
-    observer.observe(sentinel)
-    return () => observer.disconnect()
+    function atTop() {
+      const list = listRef.current
+      return window.scrollY <= 0 && (!list || list.scrollTop <= 0)
+    }
+
+    function atBottom() {
+      const list = listRef.current
+      const doc = document.documentElement
+      const windowAtBottom = window.innerHeight + window.scrollY >= doc.scrollHeight - 1
+      const listAtBottom = !list || list.scrollTop + list.clientHeight >= list.scrollHeight - 1
+      return windowAtBottom && listAtBottom
+    }
+
+    function handleIntent(direction: number) {
+      if (direction < 0 && atTop()) setShowPastMore(true)
+      if (direction > 0 && atBottom()) setShowFutureMore(true)
+    }
+
+    let touchStartY: number | null = null
+
+    function handleWheel(event: WheelEvent) {
+      handleIntent(event.deltaY)
+    }
+
+    function handleTouchStart(event: TouchEvent) {
+      touchStartY = event.touches[0]?.clientY ?? null
+    }
+
+    function handleTouchMove(event: TouchEvent) {
+      const y = event.touches[0]?.clientY
+      if (touchStartY == null || y == null) return
+      // Dragging the finger down scrolls up, and vice versa.
+      handleIntent(touchStartY - y)
+    }
+
+    window.addEventListener('wheel', handleWheel, { passive: true })
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    return () => {
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchmove', handleTouchMove)
+    }
   }, [isTile])
 
-  // Backward scroll (full variant only): there's nothing before today to
-  // observe with an IntersectionObserver (the row already starts there), so
-  // instead we watch for the user pushing past the start — a wheel/trackpad
-  // scroll or touch drag "backward" while already at the row's start edge —
-  // and load another page of past days on demand.
-  const prevScrollSizeRef = useRef<{ width: number; height: number } | null>(null)
-  const loadingPastRef = useRef(false)
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  // The bottom row appears below the fold, so bring it into view.
+  useEffect(() => {
+    if (showFutureMore) futureMoreRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [showFutureMore])
 
-  function loadPastDays() {
-    const root = scrollRef.current
-    if (isTile || !root || loadingPastRef.current) return
-    loadingPastRef.current = true
-    prevScrollSizeRef.current = { width: root.scrollWidth, height: root.scrollHeight }
-    setDaysBefore((prev) => prev + BACK_PAGE_DAYS)
-  }
-
-  function handleWheel(event: React.WheelEvent<HTMLDivElement>) {
-    const root = scrollRef.current
-    if (!root || root.scrollLeft > 0 || root.scrollTop > 0) return
-    const delta = Math.abs(event.deltaX) >= Math.abs(event.deltaY) ? event.deltaX : event.deltaY
-    if (delta < 0) loadPastDays()
-  }
-
-  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
-    const touch = event.touches[0]
-    touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null
-  }
-
-  function handleTouchMove(event: React.TouchEvent<HTMLDivElement>) {
-    const root = scrollRef.current
-    const start = touchStartRef.current
-    const touch = event.touches[0]
-    if (!root || !start || !touch || root.scrollLeft > 0 || root.scrollTop > 0) return
-    if (touch.clientX - start.x > 0 || touch.clientY - start.y > 0) loadPastDays()
-  }
-
-  // Prepending columns shifts everything already on screen, so we snapshot
-  // the scrollable size just before growing (above) and re-apply the delta
-  // here, keeping whatever the user was looking at in the same place
-  // instead of jumping.
   useLayoutEffect(() => {
-    const root = scrollRef.current
-    const prev = prevScrollSizeRef.current
-    if (root && prev) {
-      root.scrollLeft += root.scrollWidth - prev.width
-      root.scrollTop += root.scrollHeight - prev.height
-    }
-    prevScrollSizeRef.current = null
-    loadingPastRef.current = false
+    const list = listRef.current
+    const prevTop = firstDayTopRef.current
+    const day = firstDayRef.current
+    firstDayTopRef.current = null
+    firstDayRef.current = null
+    if (!list || prevTop == null || !day) return
+    const el = list.querySelector<HTMLElement>(`[data-day="${day}"]`)
+    if (!el) return
+    const delta = el.getBoundingClientRect().top - prevTop
+    list.scrollTop += delta
+    const remaining = el.getBoundingClientRect().top - prevTop
+    if (remaining) window.scrollBy(0, remaining)
   }, [daysBefore])
 
   return (
@@ -287,25 +309,29 @@ export function MealPlanWidget({ variant = 'full', onExpand }: MealPlanWidgetPro
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div
-            ref={scrollRef}
-            className={styles.row}
-            onWheel={isTile ? undefined : handleWheel}
-            onTouchStart={isTile ? undefined : handleTouchStart}
-            onTouchMove={isTile ? undefined : handleTouchMove}
-          >
+          <div ref={listRef} className={styles.list}>
+            {showPastMore && (
+              <button type="button" className={styles.seeMore} onClick={loadPastDays}>
+                See more?
+              </button>
+            )}
             {days.map((day) => (
-              <MealPlanDay
-                key={day}
-                date={day}
-                todayIso={todayIso}
-                entries={(columns[day] ?? []).map((id) => entriesById.get(id)).filter((e) => e != null)}
-                onOpenRecipe={openRecipe}
-                onRemove={handleRemove}
-                onAdd={setAddingDate}
-              />
+              <div key={day} data-day={day}>
+                <MealPlanDay
+                  date={day}
+                  todayIso={todayIso}
+                  entries={(columns[day] ?? []).map((id) => entriesById.get(id)).filter((e) => e != null)}
+                  onOpenRecipe={openRecipe}
+                  onRemove={handleRemove}
+                  onAdd={setAddingDate}
+                />
+              </div>
             ))}
-            {!isTile && <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />}
+            {showFutureMore && (
+              <button ref={futureMoreRef} type="button" className={styles.seeMore} onClick={loadFutureDays}>
+                See more?
+              </button>
+            )}
           </div>
         </DndContext>
       )}

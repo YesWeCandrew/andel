@@ -21,9 +21,11 @@ export function MealPlanDay({ date, todayIso, entries, onOpenRecipe, onRemove, o
   const { setNodeRef } = useDroppable({ id: `${DAY_CONTAINER_PREFIX}${date}` })
 
   return (
-    <div className={styles.day}>
-      <h3 className={styles.label}>{formatDayLabel(date, todayIso)}</h3>
-      <div ref={setNodeRef} className={styles.list}>
+    <div ref={setNodeRef} className={styles.day}>
+      <div className={styles.labelRow}>
+        <h3 className={date === todayIso ? 'tag tag-accent' : 'tag'}>{formatDayLabel(date, todayIso)}</h3>
+      </div>
+      <div className={styles.list}>
         <SortableContext items={entries.map((e) => e.id)} strategy={verticalListSortingStrategy}>
           {entries.map((entry) => (
             <MealPlanEntryCard key={entry.id} entry={entry} onOpen={onOpenRecipe} onRemove={onRemove} />

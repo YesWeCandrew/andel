@@ -8,7 +8,7 @@ export interface MealPlanEntry {
   recipe_id: number | null
   note: string | null
   created_on: string
-  recipe: { id: number; name: string; photo_path: string | null } | null
+  recipe: { id: number; name: string; description: string | null; photo_path: string | null } | null
 }
 
 export interface CreateMealPlanEntryInput {

@@ -31,10 +31,13 @@ export function MealPlanEntryCard({ entry, onOpen, onRemove }: MealPlanEntryCard
           {entry.recipe?.photo_path ? (
             <img src={entry.recipe.photo_path} alt="" className={styles.photoImg} />
           ) : entry.recipe ? (
-            <PizzaSlice width={20} height={20} strokeWidth={1.6} className={styles.photoPlaceholder} />
+            <PizzaSlice width={22} height={22} strokeWidth={1.6} className={styles.photoPlaceholder} />
           ) : null}
         </span>
-        <p className={styles.name}>{entry.recipe?.name ?? entry.note}</p>
+        <span className={styles.text}>
+          <span className={styles.name}>{entry.recipe?.name ?? entry.note}</span>
+          {entry.recipe?.description && <span className={styles.description}>{entry.recipe.description}</span>}
+        </span>
       </button>
       <button
         type="button"
@@ -46,7 +49,7 @@ export function MealPlanEntryCard({ entry, onOpen, onRemove }: MealPlanEntryCard
         }}
         aria-label="Remove"
       >
-        <Xmark width={13} height={13} strokeWidth={2} />
+        <Xmark width={14} height={14} strokeWidth={2} />
       </button>
     </div>
   )
