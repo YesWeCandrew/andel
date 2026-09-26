@@ -233,6 +233,12 @@ button {
   color: var(--color-on-accent);
 }
 
+.tag-outline {
+  background: transparent;
+  color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
 .tag-danger {
   background: var(--color-danger-soft);
   color: var(--color-danger);

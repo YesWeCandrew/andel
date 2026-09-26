@@ -23,7 +23,7 @@ export function MealPlanDay({ date, todayIso, entries, onOpenRecipe, onRemove, o
   return (
     <div ref={setNodeRef} className={styles.day}>
       <div className={styles.labelRow}>
-        <h3 className={date === todayIso ? 'tag tag-accent' : 'tag'}>{formatDayLabel(date, todayIso)}</h3>
+        <h3 className={date === todayIso ? 'tag tag-outline' : 'tag'}>{formatDayLabel(date, todayIso)}</h3>
       </div>
       <div className={styles.list}>
         <SortableContext items={entries.map((e) => e.id)} strategy={verticalListSortingStrategy}>
