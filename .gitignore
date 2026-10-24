@@ -7,6 +7,8 @@ frontend/node_modules/*
 *.sqlite
 dist/*
 frontend/dist
+*.claude
+fly.toml
 # Logs
 backend/logs
 backend/*.log
